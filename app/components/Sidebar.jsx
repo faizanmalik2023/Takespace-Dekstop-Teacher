@@ -3,13 +3,14 @@
 import { ChevronDown, X } from "lucide-react"
 import { useState } from "react"
 
-const subjects = [
+// Default fallback data
+const defaultSubjects = [
   { id: "math", name: "Math", color: "bg-blue-500", icon: "📊" },
   { id: "science", name: "Science", color: "bg-green-500", icon: "🧪" },
   { id: "english", name: "English", color: "bg-orange-500", icon: "📚" },
 ]
 
-const grades = [
+const defaultGrades = [
   { id: "grade-3", name: "Grade 3", number: "3" },
   { id: "grade-4", name: "Grade 4", number: "4" },
   { id: "grade-5", name: "Grade 5", number: "5" },
@@ -19,7 +20,7 @@ const grades = [
 // Book icons array for rotation
 const bookIcons = ["/icons/book1.svg", "/icons/book2.svg", "/icons/book3.svg"]
 
-export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGrade, onSubjectChange, onGradeChange }) {
+export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGrade, onSubjectChange, onGradeChange, subjects = defaultSubjects, grades = defaultGrades }) {
   const [subjectOpen, setSubjectOpen] = useState(true)
   const [gradeOpen, setGradeOpen] = useState(true)
 
@@ -71,22 +72,30 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
                 <div key={subject.id}>
                   <button
                     onClick={() => {
-                      onSubjectChange?.(subject.id)
+                      onSubjectChange?.(subject)
                       // Close sidebar on mobile after selection
                       if (window.innerWidth < 768) {
                         onClose?.()
                       }
                     }}
                     className={`flex items-center space-x-3 w-full p-2 rounded transition-colors ${
-                      selectedSubject === subject.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
+                      selectedSubject && selectedSubject.id === subject.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
                     }`}
                   >
                     <div className="flex items-center justify-center">
-                      <img 
-                        src={bookIcons[index % bookIcons.length]} 
-                        alt={`${subject.name} icon`}
-                        className="w-[26px] h-[26px]"
-                      />
+                      {subject.icon ? (
+                        <img 
+                          src={subject.icon} 
+                          alt={`${subject.name} icon`}
+                          className="w-[26px] h-[26px]"
+                        />
+                      ) : (
+                        <img 
+                          src={bookIcons[index % bookIcons.length]} 
+                          alt={`${subject.name} icon`}
+                          className="w-[26px] h-[26px]"
+                        />
+                      )}
                     </div>
                     <span className="text-[16px] pl-[8px] text-[#4F4F4F]">{subject.name}</span>
                   </button>
@@ -119,18 +128,18 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
                 <div key={grade.id}>
                   <button
                     onClick={() => {
-                      onGradeChange?.(grade.id)
+                      onGradeChange?.(grade)
                       // Close sidebar on mobile after selection
                       if (window.innerWidth < 768) {
                         onClose?.()
                       }
                     }}
                     className={`flex items-center space-x-3 w-full p-2 rounded transition-colors ${
-                      selectedGrade === grade.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
+                      selectedGrade && selectedGrade.id === grade.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
                     }`}
                   >
                     <div className="w-[26px] h-[26px] bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-[15px] font-medium text-gray-700">{grade.number}</span>
+                      <span className="text-[15px] font-medium text-gray-700">{grade.id}</span>
                     </div>
                     <span className="text-[16px] pl-[8px] text-[#4F4F4F]">{grade.name}</span>
                   </button>

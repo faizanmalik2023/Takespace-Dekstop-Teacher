@@ -3,118 +3,59 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-const mockStudents = [
-  {
-    id: 1,
-    name: "John Doe",
-    avatar: "JD",
-    status: "Manual",
-    mastery: "39",
-    skill: "12",
-    depth: "1.5",
-    markOut: "75",
-    predicted: "-",
-    timeToEarn: "2.5",
-    predicted2: "1",
-    timePracticed: "7h 08m",
-    timePracticed2: "6h 23m",
-    topicsMaximized: "7",
-    topicsMaximized2: "5",
-    aptitude: "1",
-    memory: "2",
-    creativity: "8",
-    quest: "27",
-    bgColor: "bg-[#ffe0eb]",
-  },
-  {
-    id: 2,
-    name: "Nil Simon",
-    avatar: "NS",
-    status: "Manual",
-    mastery: "42",
-    skill: "15",
-    depth: "2.1",
-    markOut: "80",
-    predicted: "B+",
-    timeToEarn: "3.2",
-    predicted2: "2",
-    timePracticed: "8h 15m",
-    timePracticed2: "7h 30m",
-    topicsMaximized: "9",
-    topicsMaximized2: "8",
-    aptitude: "2",
-    memory: "3",
-    creativity: "7",
-    quest: "31",
-    bgColor: "bg-[#e0f2fe]",
-  },
-  {
-    id: 3,
-    name: "Steve Jobs",
-    avatar: "SJ",
-    status: "Manual",
-    mastery: "35",
-    skill: "18",
-    depth: "1.8",
-    markOut: "70",
-    predicted: "B",
-    timeToEarn: "4.1",
-    predicted2: "3",
-    timePracticed: "6h 45m",
-    timePracticed2: "8h 00m",
-    topicsMaximized: "6",
-    topicsMaximized2: "7",
-    aptitude: "3",
-    memory: "1",
-    creativity: "9",
-    quest: "24",
-    bgColor: "bg-[#f3e5f5]",
-  },
-  {
-    id: 4,
-    name: "Bill Gates",
-    avatar: "BG",
-    status: "Manual",
-    mastery: "48",
-    skill: "22",
-    depth: "2.8",
-    markOut: "85",
-    predicted: "A-",
-    timeToEarn: "2.1",
-    predicted2: "1",
-    timePracticed: "9h 20m",
-    timePracticed2: "6h 45m",
-    topicsMaximized: "11",
-    topicsMaximized2: "9",
-    aptitude: "4",
-    memory: "4",
-    creativity: "6",
-    quest: "35",
-    bgColor: "bg-[#e8f5e8]",
-  },
-  {
-    id: 5,
-    name: "Alexa",
-    avatar: "A",
-    status: "Absent",
-    mastery: "25",
-    skill: "8",
-    depth: "1.2",
-    markOut: "60",
-    predicted: "C",
-    timeToEarn: "5.8",
-    predicted2: "4",
-    timePracticed: "4h 30m",
-    timePracticed2: "5h 15m",
-    topicsMaximized: "4",
-    topicsMaximized2: "6",
-    aptitude: "1",
-    memory: "2",
-    creativity: "5",
-    quest: "18",
-    bgColor: "bg-[#fff3e0]",
-  },
-]
+// Helper function to generate avatar initials
+const getAvatarInitials = (name) => {
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+};
+
+// Helper function to get random background color
+const getRandomBgColor = () => {
+  const colors = [
+    "bg-[#ffe0eb]",
+    "bg-[#e0f2fe]", 
+    "bg-[#f3e5f5]",
+    "bg-[#e8f5e8]",
+    "bg-[#fff3e0]",
+    "bg-[#f0f4ff]",
+    "bg-[#fef7e0]",
+    "bg-[#f0fdf4]"
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
+// Helper function to format student data from API
+const formatStudentData = (student) => {
+  const id = student.student_id ?? student.id;
+  const name = student.student_name 
+    ?? (student.name || ((student.first_name && student.last_name) ? `${student.first_name} ${student.last_name}` : undefined)) 
+    ?? 'Unknown Student';
+  return {
+    id,
+    name,
+    avatar: getAvatarInitials(name),
+    status: student.status || 'Active',
+    mastery: 
+      student.percentage_of_mastery ?? student.mastery ?? student.mastery_score ?? 0,
+    skill: 
+      student.red_topic_percentage ?? student.skill ?? student.skill_score ?? 0,
+    depth: 
+      student.depth_of_mastery ?? student.depth ?? student.depth_score ?? 0,
+    markOut: 
+      student.mark_goal ?? student.mark_out ?? 0,
+    predicted: student.predicted_mark ?? '-',
+    timeToEarn: student.time_to_exam ?? student.time_to_earn ?? 0,
+    predicted2: student.predicted_time ?? 0,
+    timePracticed: student.time_practiced ?? '0h 00m',
+    timePracticed2: student.time_practiced_goal ?? '0h 00m',
+    topicsMaximized: student.topics_mastered ?? 0,
+    topicsMaximized2: student.topics_mastered_goal ?? 0,
+    aptitude: student.aptitude ?? 0,
+    memory: student.memory ?? 0,
+    creativity: student.creativity ?? 0,
+    quest: student.quest_count ?? student.quest ?? student.quests_completed ?? 0,
+    bgColor: getRandomBgColor(),
+  };
+};
 
 const imgGroup = "/4244c285388eb776fa80dc8d941b5eac78ab94cd.svg"
 
@@ -261,15 +202,23 @@ function DataTag({ label, value, unit = "" }) {
   )
 }
 
-export function MainContent() {
+export function MainContent({ selectedSubject, selectedGrade, students = [], loading = false }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [sortBy, setSortBy] = useState("Name")
+  
+  // Format students data for display
+  const formattedStudents = students.map(formatStudentData);
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-gray-50 overflow-x-hidden">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-        <h1 className="text-xl md:text-2xl font-semibold text-gray-900">Science Grade 5</h1>
+        <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
+          {selectedSubject && selectedGrade 
+            ? `${selectedSubject.name} ${selectedGrade.name}` 
+            : 'Select Subject and Grade'
+          }
+        </h1>
         
         {/* Figma-styled Dropdown */}
         <div className="relative w-full sm:w-auto">
@@ -337,9 +286,26 @@ export function MainContent() {
 
       {/* Student Cards */}
       <div className="space-y-4">
-        {mockStudents.map((student) => (
-          <StudentCard key={student.id} student={student} />
-        ))}
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <div className="text-[#103358]">Loading students...</div>
+          </div>
+        ) : formattedStudents.length > 0 ? (
+          formattedStudents.map((student) => (
+            <StudentCard key={student.id} student={student} />
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center h-32">
+            <div className="text-gray-400 text-4xl mb-2">👥</div>
+            <div className="text-gray-500 text-lg mb-1">No Students Found</div>
+            <div className="text-gray-400 text-sm text-center">
+              {selectedSubject && selectedGrade 
+                ? `No students found for ${selectedSubject.name} - ${selectedGrade.name}`
+                : 'Please select a subject and grade to view students'
+              }
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

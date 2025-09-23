@@ -1,34 +1,21 @@
 "use client"
 
-import { useState } from "react"
-import { DashboardHeader } from "@/app/components/Header"
-import { DashboardSidebar } from "@/app/components/Sidebar"
-import { MainContent } from "@/app/components/MainContent"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
-export default function TeacherDashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [selectedSubject, setSelectedSubject] = useState("science")
-  const [selectedGrade, setSelectedGrade] = useState("grade-5")
+export default function HomePage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    // Redirect to login page
+    router.push('/login')
+  }, [router])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <DashboardHeader onMenuClick={() => setSidebarOpen(true)} />
-      
-      {/* Main Layout */}
-      <div className="flex">
-        {/* Sidebar */}
-        <DashboardSidebar 
-          isOpen={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
-          selectedSubject={selectedSubject}
-          selectedGrade={selectedGrade}
-          onSubjectChange={setSelectedSubject}
-          onGradeChange={setSelectedGrade}
-        />
-        
-        {/* Main Content */}
-        <MainContent />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#398AC8] mx-auto"></div>
+        <p className="mt-4 text-gray-600">Redirecting to login...</p>
       </div>
     </div>
   )
