@@ -38,12 +38,12 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
       {/* Sidebar */}
       <div className={`
         fixed left-0 z-40
-        w-64 bg-white border-r border-gray-200
+        w-64 bg-white border-r border-gray-200 no-scrollbar
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         md:translate-x-0 md:block
       `}
-        style={{ top: '100px', height: 'calc(100vh - 100px)' }}
+        style={{ top: '100px', height: 'calc(100vh - 100px)', overflowY: 'auto' }}
       >
         {/* Mobile Close Button */}
         <div className="flex justify-between items-center mb-4 md:hidden">
@@ -60,11 +60,11 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
         <div className="space-y-2">
           <button
             onClick={() => setSubjectOpen(!subjectOpen)}
-            className="flex items-center justify-between w-full cursor-pointer hover:bg-gray-50 rounded p-2 transition-colors relative"
+            className="flex items-center justify-between w-full cursor-pointer hover:bg-gray-50 rounded p-2 pl-4 transition-colors relative"
           >
             {/* Dark Blue Vertical Bar */}
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#103358] rounded-r"></div>
-            <span className="text-[18px] font-semibold text-[#103358] ml-3">Subject</span>
+            <span className="text-[18px] font-semibold text-[#103358] ml-4">Subject</span>
             <ChevronDown
               className={`w-4 h-4 text-[#103358] transition-transform ${subjectOpen ? "rotate-0" : "-rotate-90"}`}
             />
@@ -116,11 +116,11 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
         <div className="space-y-2 mt-6">
           <button
             onClick={() => setGradeOpen(!gradeOpen)}
-            className="flex items-center justify-between w-full cursor-pointer hover:bg-gray-50 rounded p-2 transition-colors relative"
+            className="flex items-center justify-between w-full cursor-pointer hover:bg-gray-50 rounded p-2 pl-4 transition-colors relative"
           >
             {/* Dark Blue Vertical Bar */}
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#103358] rounded-r"></div>
-            <span className="text-[18px] font-semibold text-[#103358] pl-3">Grade</span>
+            <span className="text-[18px] font-semibold text-[#103358] pl-4">Grade</span>
             <ChevronDown
               className={`w-4 h-4 text-[#103358] transition-transform ${gradeOpen ? "rotate-0" : "-rotate-90"}`}
             />
