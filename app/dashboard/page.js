@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import ProtectedRoute from "../components/ProtectedRoute"
-import { DashboardHeader } from "../components/Header.jsx"
 import { DashboardSidebar } from "../components/Sidebar.jsx"
 import { MainContent } from "../components/MainContent.jsx"
 import { api } from "../lib/api"
@@ -166,11 +165,8 @@ export default function TeacherDashboard() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <DashboardHeader onMenuClick={() => setSidebarOpen(true)} />
-        
         {/* Main Layout */}
-        <div className="flex">
+        <div className="flex" style={{ paddingTop: '100px' }}>
           {/* Sidebar */}
           <DashboardSidebar 
             isOpen={sidebarOpen} 
@@ -184,12 +180,14 @@ export default function TeacherDashboard() {
           />
           
           {/* Main Content */}
-          <MainContent 
+          <div className="flex-1 md:ml-64">
+            <MainContent 
             selectedSubject={selectedSubject}
             selectedGrade={selectedGrade}
             students={students}
             loading={loading}
-          />
+            />
+          </div>
         </div>
       </div>
     </ProtectedRoute>

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Mock Input component based on the design
 const Input = ({ placeholder, className, icon, iconPosition }) => {
@@ -77,6 +78,7 @@ const Navbar = () => {
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userDisplay, setUserDisplay] = useState('');
+  const { isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     try {
@@ -92,8 +94,7 @@ const Navbar = () => {
 
   const navLinks = [
     { key: 'learning', label: t('learning') },
-    { key: 'analytics', label: t('analytics') },
-    { key: 'account', label: t('account') }
+    { key: 'analytics', label: t('analytics') }
   ];
 
   return (
@@ -156,24 +157,12 @@ const Navbar = () => {
               {link.label}
             </a>
           ))}
-          {userDisplay ? (
+          {isAuthenticated ? (
             <>
               <span className="text-sm text-[#103358] whitespace-nowrap">{userDisplay}</span>
               <button
                 className="ml-2 px-3 py-2 text-sm rounded-md border border-[#103358] text-[#103358] hover:bg-[#E3F3FF]"
-                onClick={() => {
-                  try {
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
-                    localStorage.removeItem('user');
-                  } catch (_) {}
-                  try {
-                    sessionStorage.removeItem('access_token');
-                    sessionStorage.removeItem('refresh_token');
-                    sessionStorage.removeItem('user');
-                  } catch (_) {}
-                  window.location.href = '/login';
-                }}
+                onClick={logout}
               >
                 Logout
               </button>

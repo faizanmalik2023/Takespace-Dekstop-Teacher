@@ -3,6 +3,7 @@ import './globals.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AppShell from './components/layout/AppShell';
 
 // Configure Inter font
 const inter = Inter({ 
@@ -29,7 +30,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${inter.variable} ${poppins.variable} ${inter.className}`}>
         <AuthProvider>
-          {children}
+          <AppShell>
+            {children}
+          </AppShell>
           <ToastContainer
             position="top-right"
             autoClose={5000}

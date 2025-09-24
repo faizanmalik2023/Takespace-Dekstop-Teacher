@@ -1,5 +1,4 @@
 'use client';
-import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import I18nProvider from '../providers/I18nProvider';
 
@@ -16,7 +15,6 @@ const Layout = ({
   return (
     <I18nProvider>
       <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-        <Navbar />
         <div className="flex">
           {showSidebar && (
             <Sidebar 
@@ -31,7 +29,7 @@ const Layout = ({
           <main 
             className="flex-1 overflow-x-hidden"
             style={{ 
-              paddingTop: '100px',
+              paddingTop: 0,
               minHeight: '100vh',
               marginLeft: showSidebar ? '250px' : '0'
             }}

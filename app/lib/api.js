@@ -389,7 +389,7 @@ const getTeacherAnalyticsAPI = async (filters = {}) => {
       }
     }
     
-    const url = `https://dev.takespace.com/admin/v1/teacher-analytics/${teacherId}/?${params.toString()}`;
+    const url = `https://dev.takespace.com/admin/v1/teacher-analytics/10/?${params.toString()}`;
     const data = await apiRequest(url);
     return data;
   } catch (error) {

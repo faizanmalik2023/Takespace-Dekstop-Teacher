@@ -8,18 +8,25 @@ import Chart from "../components/ui/Chart"
 import DifficultTopicsLeaderboard from "../components/DifficultTopicsLeaderboard"
 import PieChart from "../components/analytics/PieChart"
 import GoalsComponent from "../components/GoalsComponent"
+import SuccessMessage from "../components/common/SuccessMessage"
+import ErrorMessage from "../components/common/ErrorMessage"
 import { api } from "../lib/api"
 
 export default function AnalyticsPage() {
   const [pageData, setPageData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({ grade: 'All grades', subject: 'All subjects', dateRange: 'Last 30 days' })
+  const [goals, setGoals] = useState({ practiceTime: 5, topicsMastered: 5, examDate: '' })
+  const [savingGoals, setSavingGoals] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState('')
+  const [saveError, setSaveError] = useState('')
 
   const fetchData = async (currentFilters) => {
     if (pageData) setLoading(true)
     try {
       const data = await api.getTeacherAnalyticsPageData(currentFilters)
       setPageData(data)
+      if (data.goals) setGoals(data.goals)
     } catch (e) {
       console.error('Failed to load analytics', e)
     } finally {
@@ -36,6 +43,43 @@ export default function AnalyticsPage() {
     const newFilters = { ...filters, [filterType]: value }
     setFilters(newFilters)
     fetchData(newFilters)
+  }
+
+  const handleGoalChange = (e) => {
+    const { name, value } = e.target
+    setGoals(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSaveGoals = async () => {
+    setSaveSuccess('')
+    setSaveError('')
+
+    if (!goals.examDate) {
+      setSaveError('Exam date is required.')
+      return
+    }
+    const today = new Date()
+    const exam = new Date(goals.examDate)
+    if (exam <= today) {
+      setSaveError('Exam date must be in the future.')
+      return
+    }
+
+    if (filters.grade === 'All grades' || filters.subject === 'All subjects') {
+      setSaveError('Please select a specific grade and subject.')
+      return
+    }
+
+    setSavingGoals(true)
+    try {
+      await api.updateSubjectGoals({ grade: filters.grade, subject: filters.subject }, { practiceTime: goals.practiceTime, topicsMastered: goals.topicsMastered, examDate: goals.examDate })
+      setSaveSuccess('Goals updated successfully.')
+    } catch (err) {
+      console.error(err)
+      setSaveError('Failed to update goals.')
+    } finally {
+      setSavingGoals(false)
+    }
   }
 
   if (loading && !pageData) {
@@ -155,12 +199,79 @@ export default function AnalyticsPage() {
                 </div>
               </div>
 
-              <DifficultTopicsLeaderboard data={leaderboardData} />
+              {/* Difficult Topic Leaderboard - exact same layout */}
+              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-[0px_2px_6px_rgba(13,10,44,0.08)] border border-black/5">
+                <h2 className="mb-4 sm:mb-6 text-lg sm:text-xl font-bold" style={{ color: '#398AC8' }}>Difficult Topic Leaderboard</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 sm:gap-x-8 gap-y-4 sm:gap-y-6">
+                  {Object.keys(pageData.leaderboard || {}).length > 0 ? (
+                    Object.keys(pageData.leaderboard).map(subjectKey => (
+                      <div key={subjectKey}>
+                        <h3 className="mb-3 sm:mb-4 text-base sm:text-lg font-semibold capitalize" style={{ color: '#103358' }}>{subjectKey}</h3>
+                        <div className="space-y-2 sm:space-y-3">
+                          {pageData.leaderboard[subjectKey].map(topic => (
+                            <div key={topic.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-[#F0F7FF]">
+                              <div className="flex items-center space-x-2 min-w-0 flex-1">
+                                <span className="text-xs sm:text-sm text-gray-800 truncate">{topic.name}</span>
+                                <div className="w-[6px] h-[6px] sm:w-[7px] sm:h-[7px] bg-[#FF0000] flex-shrink-0" />
+                              </div>
+                              <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 ml-2">
+                                <svg width="14" height="14" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="#398AC8" strokeWidth="2"><path d="M20 21V19C20 16.7909 18.2091 15 16 15H8C5.79086 15 4 16.7909 4 19V21" /><path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" /></svg>
+                                <span className="text-xs sm:text-sm font-medium text-[#398AC8]">{topic.count}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-8">
+                      <p className="text-gray-500 text-sm">No data available</p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <div className="w-full lg:w-10/12 xl:w-8/12">
                 <div className="bg-white rounded-xl p-4 sm:p-6 shadow-[0px_2px_6px_rgba(13,10,44,0.08)] border border-black/5">
                   <h2 className="mb-4 sm:mb-6 text-lg sm:text-xl font-semibold" style={{ color: '#103358' }}>Default Goals For The Chosen Grade(s) And Subject(s)</h2>
-                  <GoalsComponent />
+                  {saveSuccess && (
+                    <div className="mb-4"><SuccessMessage message={saveSuccess} /></div>
+                  )}
+                  {saveError && (
+                    <div className="mb-4"><ErrorMessage message={saveError} /></div>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 items-start">
+                    <div className="space-y-1 sm:space-y-2">
+                      <label className="block mb-1 text-sm sm:text-base font-semibold" style={{ color: '#103358' }}>Practice Time</label>
+                      <p className="text-xs sm:text-sm mb-2 text-gray-800">Per week, in hours</p>
+                      <input type="number" name="practiceTime" value={goals.practiceTime} onChange={handleGoalChange} className="w-full p-2 sm:p-2.5 bg-[#F9FAFB] rounded-md text-gray-900 text-sm sm:text-base border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-1 sm:space-y-2">
+                      <label className="block mb-1 text-sm sm:text-base font-semibold" style={{ color: '#103358' }}>Topics Mastered</label>
+                      <p className="text-xs sm:text-sm mb-2 text-gray-800">Per week</p>
+                      <input type="number" name="topicsMastered" value={goals.topicsMastered} onChange={handleGoalChange} className="w-full p-2 sm:p-2.5 bg-[#F9FAFB] rounded-md text-gray-900 text-sm sm:text-base border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-1 sm:space-y-2">
+                      <label className="block mb-1 text-sm sm:text-base font-semibold" style={{ color: '#103358' }}>Exam Date</label>
+                      <input 
+                        type="date"
+                        name="examDate" 
+                        value={goals.examDate} 
+                        onChange={handleGoalChange} 
+                        placeholder={'dd/mm/yyyy'} 
+                        className="w-full p-2 sm:p-2.5 bg-[#F9FAFB] rounded-md text-gray-900 text-sm sm:text-base border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4 sm:mt-6 flex justify-end">
+                    <button type="button" onClick={handleSaveGoals} disabled={savingGoals} className={`px-4 py-2 rounded-md text-white ${savingGoals ? 'bg-[#398AC8]/60 cursor-not-allowed' : 'bg-[#398AC8] hover:bg-[#103358]'} transition-colors`}>
+                      {savingGoals ? 'Saving...' : 'saveGoals'}
+                    </button>
+                  </div>
+                  <style jsx>{`
+                    input[type='date']::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
+                    input[type='date'] { appearance: none; -webkit-appearance: none; }
+                  `}</style>
                 </div>
               </div>
             </main>

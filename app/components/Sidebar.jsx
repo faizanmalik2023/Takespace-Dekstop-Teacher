@@ -29,19 +29,22 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
       {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed left-0 right-0 bg-black bg-opacity-50 z-40 md:hidden"
+          style={{ top: '100px', bottom: 0 }}
           onClick={onClose}
         />
       )}
       
       {/* Sidebar */}
       <div className={`
-        fixed md:static inset-y-0 left-0 z-50
+        fixed left-0 z-40
         w-64 bg-white border-r border-gray-200
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        md:block
-      `}>
+        md:translate-x-0 md:block
+      `}
+        style={{ top: '100px', height: 'calc(100vh - 100px)' }}
+      >
         {/* Mobile Close Button */}
         <div className="flex justify-between items-center mb-4 md:hidden">
           <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
