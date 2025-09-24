@@ -107,7 +107,7 @@ const Navbar = () => {
     >
       <div className="w-full h-full relative px-4 sm:px-6 lg:px-8">
         {/* Left Section - Logo and Brand */}
-        <div className="absolute left-4 sm:left-6 lg:left-8 top-0 flex items-center space-x-2 sm:space-x-3 h-full">
+        <a href="/dashboard" className="absolute left-4 sm:left-6 lg:left-8 top-0 flex items-center space-x-2 sm:space-x-3 h-full cursor-pointer select-none" style={{ textDecoration: 'none' }}>
           <img 
             src="/logo.svg" 
             alt="TakeSpace Logo" 
@@ -128,7 +128,7 @@ const Navbar = () => {
             <span style={{ color: '#398AC8' }}>Take</span>
             <span style={{ color: '#103358' }}>Space</span>
           </div>
-        </div>
+        </a>
 
         {/* Center Section - Search Bar (Hidden on mobile) */}
         <Input

@@ -166,7 +166,7 @@ export default function TeacherDashboard() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         {/* Main Layout */}
-        <div className="flex" style={{ paddingTop: '100px' }}>
+        <div className="flex">
           {/* Sidebar */}
           <DashboardSidebar 
             isOpen={sidebarOpen} 

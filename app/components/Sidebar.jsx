@@ -81,7 +81,7 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
                         onClose?.()
                       }
                     }}
-                    className={`flex items-center space-x-3 w-full p-2 rounded transition-colors ${
+                    className={`flex items-center space-x-3 w-full p-2 pl-4 rounded transition-colors ${
                       selectedSubject && selectedSubject.id === subject.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
                     }`}
                   >
@@ -100,7 +100,7 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
                         />
                       )}
                     </div>
-                    <span className="text-[16px] pl-[8px] text-[#4F4F4F]">{subject.name}</span>
+                    <span className="text-[16px] pl-3 text-[#4F4F4F]">{subject.name}</span>
                   </button>
                   {/* Add divider after each subject except the last one */}
                   {index < subjects.length - 1 && (
@@ -137,7 +137,7 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
                         onClose?.()
                       }
                     }}
-                    className={`flex items-center space-x-3 w-full p-2 rounded transition-colors ${
+                    className={`flex items-center space-x-3 w-full p-2 pl-4 rounded transition-colors ${
                       selectedGrade && selectedGrade.id === grade.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
                     }`}
                   >
