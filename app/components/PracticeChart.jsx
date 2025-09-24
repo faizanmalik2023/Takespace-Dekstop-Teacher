@@ -1,52 +1,7 @@
 "use client"
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
-import { useState, useEffect } from 'react'
-
-// Mock data for the chart - this would come from backend in real implementation
-const generateMockData = (dateRange, grade, subject) => {
-  const today = new Date()
-  const data = []
-  
-  // Generate data based on date range
-  let days = 30 // default
-  if (dateRange === 'last-7') days = 7
-  else if (dateRange === 'last-90') days = 90
-  else if (dateRange === 'last-180') days = 180
-  else if (dateRange === 'last-365') days = 365
-  
-  // Adjust data based on grade and subject for more realistic variation
-  const gradeMultiplier = grade === 'all' ? 1 : parseInt(grade.split('-')[1]) * 0.2
-  const subjectMultiplier = subject === 'all' ? 1 : 
-    subject === 'math' ? 1.2 : 
-    subject === 'science' ? 1.1 : 
-    subject === 'english' ? 0.9 : 0.8
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-    
-    // Generate more realistic data with some patterns
-    const basePracticeTime = Math.floor(Math.random() * 6000) + 500
-    const baseGoalTime = Math.floor(Math.random() * 4000) + 300
-    
-    // Add some weekly patterns (weekends might have different patterns)
-    const dayOfWeek = date.getDay()
-    const weekendMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 0.7 : 1.1
-    
-    const practiceTime = Math.floor(basePracticeTime * gradeMultiplier * subjectMultiplier * weekendMultiplier)
-    const goalTime = Math.floor(baseGoalTime * gradeMultiplier * subjectMultiplier)
-    
-    data.push({
-      date: date,
-      practiceTime: practiceTime,
-      goalTime: goalTime,
-      formattedDate: formatDate(date, i === 0)
-    })
-  }
-  
-  return data
-}
+import { useMemo } from 'react'
 
 const formatDate = (date, isToday) => {
   if (isToday) return 'TODAY'
@@ -63,23 +18,19 @@ const formatDate = (date, isToday) => {
   return day.toString()
 }
 
-export default function PracticeChart({ dateRange, grade, subject }) {
-  const [data, setData] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  
-  useEffect(() => {
-    setIsLoading(true)
-    // Simulate API call delay for more realistic behavior
-    const timer = setTimeout(() => {
-      setData(generateMockData(dateRange, grade, subject))
-      setIsLoading(false)
-    }, 300)
-    
-    return () => clearTimeout(timer)
-  }, [dateRange, grade, subject])
+export default function PracticeChart({ data }) {
+  const chartData = useMemo(() => {
+    if (!Array.isArray(data)) return []
+    return data.map(d => ({
+      date: d.date instanceof Date ? d.date : new Date(d.date),
+      formattedDate: formatDate(d.date instanceof Date ? d.date : new Date(d.date), false),
+      practiceTime: Number(d.practiceTime ?? d.practice_time ?? 0),
+      goalTime: Number(d.goalTime ?? d.goal_time ?? 0),
+    }))
+  }, [data])
   
   // Calculate minimum width based on data points
-  const minWidth = Math.max(600, data.length * 40) // 40px per data point minimum
+  const minWidth = Math.max(600, chartData.length * 40)
   
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }) => {
@@ -113,15 +64,13 @@ export default function PracticeChart({ dateRange, grade, subject }) {
         <div className="absolute top-2 right-2 text-xs text-gray-400 bg-white px-2 py-1 rounded opacity-75">
           Scroll →
         </div>
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
+        {chartData.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-500">No data available</div>
         ) : (
           <div className="h-full" style={{ minWidth: `${minWidth}px` }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={data}
+                data={chartData}
                 margin={{
                   top: 20,
                   right: 30,

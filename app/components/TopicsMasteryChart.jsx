@@ -1,61 +1,6 @@
 "use client"
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
-import { useState, useEffect } from 'react'
-
-// Mock data for the topics mastery chart
-const generateMockData = (dateRange, grade, subject) => {
-  // Adjust data based on filters for more realistic variation
-  const gradeMultiplier = grade === 'all' ? 1 : parseInt(grade.split('-')[1]) * 0.2
-  const subjectMultiplier = subject === 'all' ? 1 : 
-    subject === 'math' ? 1.2 : 
-    subject === 'science' ? 1.1 : 
-    subject === 'english' ? 0.9 : 0.8
-  
-  const dateMultiplier = dateRange === 'last-7' ? 0.3 :
-    dateRange === 'last-30' ? 1 :
-    dateRange === 'last-90' ? 2.5 :
-    dateRange === 'last-180' ? 4 :
-    dateRange === 'last-365' ? 8 : 1
-
-  const baseData = [
-    { name: 'Mastered', value: 67, count: 34, percentage: 67, color: '#22C55E' },
-    { name: 'Difficult', value: 27, count: 12, percentage: 27, color: '#EF4444' },
-    { name: 'Revised Later', value: 21, count: 10, percentage: 21, color: '#86EFAC' },
-    { name: '2 More Revision left', value: 21, count: 12, percentage: 21, color: '#FCD34D' },
-    { name: '3 More Revision left', value: 11, count: 5, percentage: 11, color: '#3B82F6' },
-    { name: 'Last Revision left', value: 10, count: 8, percentage: 10, color: '#FEF3C7' }
-  ]
-
-  return baseData.map(item => ({
-    ...item,
-    value: Math.floor(item.value * gradeMultiplier * subjectMultiplier * dateMultiplier),
-    count: Math.floor(item.count * gradeMultiplier * subjectMultiplier * dateMultiplier)
-  }))
-}
-
-// Mock progress data
-const generateProgressData = (dateRange, grade, subject) => {
-  const gradeMultiplier = grade === 'all' ? 1 : parseInt(grade.split('-')[1]) * 0.2
-  const subjectMultiplier = subject === 'all' ? 1 : 
-    subject === 'math' ? 1.2 : 
-    subject === 'science' ? 1.1 : 
-    subject === 'english' ? 0.9 : 0.8
-  
-  const dateMultiplier = dateRange === 'last-7' ? 0.3 :
-    dateRange === 'last-30' ? 1 :
-    dateRange === 'last-90' ? 2.5 :
-    dateRange === 'last-180' ? 4 :
-    dateRange === 'last-365' ? 8 : 1
-
-  return {
-    mastery: Math.floor(39 * gradeMultiplier * subjectMultiplier * dateMultiplier),
-    red: Math.floor(22 * gradeMultiplier * subjectMultiplier * dateMultiplier),
-    depth: Math.round((1.5 * gradeMultiplier * subjectMultiplier * dateMultiplier) * 10) / 10,
-    streak: Math.floor(167 * gradeMultiplier * subjectMultiplier * dateMultiplier),
-    memory: Math.floor(2 * gradeMultiplier * subjectMultiplier * dateMultiplier)
-  }
-}
 
 // Custom tooltip for pie chart
 const CustomTooltip = ({ active, payload }) => {
@@ -171,21 +116,7 @@ function ProgressMetric({ label, value, unit = "", isSet = false }) {
   )
 }
 
-export default function TopicsMasteryChart({ dateRange, grade, subject }) {
-  const [topicsData, setTopicsData] = useState([])
-  const [progressData, setProgressData] = useState({})
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    setIsLoading(true)
-    const timer = setTimeout(() => {
-      setTopicsData(generateMockData(dateRange, grade, subject))
-      setProgressData(generateProgressData(dateRange, grade, subject))
-      setIsLoading(false)
-    }, 300)
-    
-    return () => clearTimeout(timer)
-  }, [dateRange, grade, subject])
+export default function TopicsMasteryChart({ topicsData = [], progressData = {} }) {
 
   const legendData = [
     { color: '#22C55E', label: 'Mastered' },
@@ -212,10 +143,8 @@ export default function TopicsMasteryChart({ dateRange, grade, subject }) {
             {/* Pie Chart */}
             <div className="flex-shrink-0">
               <div className="w-64 h-64">
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
+                {topicsData.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-gray-500">No data</div>
                 ) : (
                   <CustomPieChart data={topicsData} />
                 )}

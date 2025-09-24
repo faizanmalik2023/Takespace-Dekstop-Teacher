@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { DashboardHeader } from "@/app/components/Header"
+// Removed page-level header; global Navbar is rendered by AppShell
 import { useEffect, useState } from "react"
 import FilterDropdown from "@/app/components/FilterDropdown"
 import PracticeChart from "@/app/components/PracticeChart"
@@ -10,119 +10,7 @@ import TopicsMasteryChart from "@/app/components/TopicsMasteryChart"
 import GoalsDisplayComponent from "@/app/components/GoalsDisplayComponent"
 import UnitsAndTopicsComponent from "@/app/components/UnitsAndTopicsComponent"
 import { getStudentProgress, getStudentStatistics, updateStudentGoals } from "@/app/lib/api"
-// Mock students data (same as in MainContent)
-const mockStudents = [
-  {
-    id: 1,
-    name: "John Doe",
-    avatar: "JD",
-    status: "Manual",
-    mastery: "39",
-    skill: "12",
-    depth: "1.5",
-    markOut: "75",
-    predicted: "-",
-    timeToEarn: "2.5",
-    predicted2: "1",
-    timePracticed: "7h 08m",
-    timePracticed2: "6h 23m",
-    topicsMaximized: "7",
-    topicsMaximized2: "5",
-    aptitude: "1",
-    memory: "2",
-    creativity: "8",
-    quest: "27",
-    bgColor: "bg-[#ffe0eb]",
-  },
-  {
-    id: 2,
-    name: "Nil Simon",
-    avatar: "NS",
-    status: "Manual",
-    mastery: "42",
-    skill: "15",
-    depth: "2.1",
-    markOut: "80",
-    predicted: "B+",
-    timeToEarn: "3.2",
-    predicted2: "2",
-    timePracticed: "8h 15m",
-    timePracticed2: "7h 30m",
-    topicsMaximized: "9",
-    topicsMaximized2: "8",
-    aptitude: "2",
-    memory: "3",
-    creativity: "7",
-    quest: "31",
-    bgColor: "bg-[#e0f2fe]",
-  },
-  {
-    id: 3,
-    name: "Steve Jobs",
-    avatar: "SJ",
-    status: "Manual",
-    mastery: "35",
-    skill: "18",
-    depth: "1.8",
-    markOut: "70",
-    predicted: "B",
-    timeToEarn: "4.1",
-    predicted2: "3",
-    timePracticed: "6h 45m",
-    timePracticed2: "8h 00m",
-    topicsMaximized: "6",
-    topicsMaximized2: "7",
-    aptitude: "3",
-    memory: "1",
-    creativity: "9",
-    quest: "24",
-    bgColor: "bg-[#f3e5f5]",
-  },
-  {
-    id: 4,
-    name: "Bill Gates",
-    avatar: "BG",
-    status: "Manual",
-    mastery: "48",
-    skill: "22",
-    depth: "2.8",
-    markOut: "85",
-    predicted: "A-",
-    timeToEarn: "2.1",
-    predicted2: "1",
-    timePracticed: "9h 20m",
-    timePracticed2: "6h 45m",
-    topicsMaximized: "11",
-    topicsMaximized2: "9",
-    aptitude: "4",
-    memory: "4",
-    creativity: "6",
-    quest: "35",
-    bgColor: "bg-[#e8f5e8]",
-  },
-  {
-    id: 5,
-    name: "Alexa",
-    avatar: "A",
-    status: "Absent",
-    mastery: "25",
-    skill: "8",
-    depth: "1.2",
-    markOut: "60",
-    predicted: "C",
-    timeToEarn: "5.8",
-    predicted2: "4",
-    timePracticed: "4h 30m",
-    timePracticed2: "5h 15m",
-    topicsMaximized: "4",
-    topicsMaximized2: "6",
-    aptitude: "1",
-    memory: "2",
-    creativity: "5",
-    quest: "18",
-    bgColor: "bg-[#fff3e0]",
-  },
-]
+// Removed mockStudents; use API-driven data only
 const gradeOptions = [
   { id: 'all', label: 'All grades' },
   { id: 'grade-3', label: 'Grade 3' },
@@ -152,7 +40,7 @@ const imgGroup = "/c8c0fee716a27772f1443d814e6c1e60aa4adee0.svg"
 export default function StudentInfoPage() {
   const params = useParams()
   const router = useRouter()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  // Sidebar state not needed without page-level header
   const [selectedGrade, setSelectedGrade] = useState('all')
   const [selectedSubject, setSelectedSubject] = useState('all')
   const [selectedDateRange, setSelectedDateRange] = useState('last_30_days')
@@ -160,7 +48,7 @@ export default function StudentInfoPage() {
   const [statistics, setStatistics] = useState(null)
   const [loading, setLoading] = useState(false)
   const studentId = parseInt(params.id)
-  const student = mockStudents.find(s => s.id === studentId)
+  const [studentName, setStudentName] = useState('Student')
 
   // TODO: Replace with real subject selection; default to Math:1 for now
   const subjectId = 1
@@ -175,6 +63,9 @@ export default function StudentInfoPage() {
         ])
         setProgress(p)
         setStatistics(s)
+        // Try to infer student name from responses if present
+        const inferredName = p?.data?.student_name || s?.data?.student_name || p?.data?.student?.name || s?.data?.student?.name
+        if (inferredName) setStudentName(inferredName)
       } catch (e) {
         console.error('Failed to load student data', e)
       } finally {
@@ -184,28 +75,10 @@ export default function StudentInfoPage() {
     if (studentId) load()
   }, [studentId, subjectId, selectedDateRange])
 
-  if (!student) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-         <DashboardHeader onMenuClick={() => setSidebarOpen(true)} />
-        <div className="flex-1 p-4 md:p-6">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-4">Student Not Found</h1>
-            <button 
-              onClick={() => router.push('/')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Back to Home
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Always render the page sections, even when data is not available
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
       
       <div className="flex-1 p-4 md:p-6">
         {/* Back Button */}
@@ -224,8 +97,7 @@ export default function StudentInfoPage() {
        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-[2%] gap-4">
           {/* Left Side - Title and Refresh */}
           <div className="flex items-center space-x-2">
-            <div className="text-[18px] font-semibold text-[#103358]">{student.name}</div>
-           
+            <div className="text=[18px] font-semibold text-[#103358]">{studentName}</div>
           </div>
 
           {/* Right Side - Filter Dropdowns */}
@@ -263,24 +135,23 @@ export default function StudentInfoPage() {
               {loading && (
                 <div className="h-72 flex items-center justify-center">Loading...</div>
               )}
-              {!loading && progress && (
-                <PracticeChart 
-                  dateRange={selectedDateRange}
-                  grade={selectedGrade}
-                  subject={selectedSubject}
-                />
-              )}
+              <PracticeChart 
+                data={progress?.data?.practice_by_day || []}
+              />
             </div>
             
             {/* Right Column - Pie Chart Section */}
             <div className="w-full lg:w-[40%] h-full">
-              {progress && (
-                <PieChartSection 
-                  dateRange={selectedDateRange}
-                  grade={selectedGrade}
-                  subject={selectedSubject}
-                />
-              )}
+              <PieChartSection 
+                questionsData={statistics?.data?.homework_to_classwork_questions ? [
+                  { name: 'Class', value: statistics?.data?.homework_to_classwork_questions?.classwork || 0, percentage: 0, color: '#3B82F6' },
+                  { name: 'Home', value: statistics?.data?.homework_to_classwork_questions?.homework || 0, percentage: 0, color: '#1E40AF' },
+                ] : []}
+                timeData={statistics?.data?.homework_to_classwork_time ? [
+                  { name: 'Class', value: statistics?.data?.homework_to_classwork_time?.classwork_time || 0, percentage: 0, color: '#3B82F6' },
+                  { name: 'Home', value: statistics?.data?.homework_to_classwork_time?.homework_time || 0, percentage: 0, color: '#1E40AF' },
+                ] : []}
+              />
             </div>
           </div>
         </div>
@@ -288,27 +159,29 @@ export default function StudentInfoPage() {
         {/* Topics Mastery Section */}
         <div className="p-[20px]">
           <TopicsMasteryChart 
-            dateRange={selectedDateRange}
-            grade={selectedGrade}
-            subject={selectedSubject}
+            topicsData={statistics?.data?.topics_by_mastery || []}
+            progressData={{
+              mastery: statistics?.data?.progress_to_date?.mastery ?? 0,
+              red: statistics?.data?.progress_to_date?.red ?? 0,
+              depth: statistics?.data?.progress_to_date?.depth ?? 0,
+              streak: statistics?.data?.progress_to_date?.streak ?? 0,
+              memory: statistics?.data?.progress_to_date?.memory ?? 0,
+            }}
           />
         </div>
 
         {/* Goals Display Section */}
         <div className="p-[20px]">
           <GoalsDisplayComponent 
-            dateRange={selectedDateRange}
-            grade={selectedGrade}
-            subject={selectedSubject}
+            data={statistics?.data?.goals || null}
           />
         </div>
 
         {/* Units and Topics Section */}
         <div className="p-[20px]">
           <UnitsAndTopicsComponent 
-            dateRange={selectedDateRange}
-            grade={selectedGrade}
-            subject={selectedSubject}
+            subtopics={statistics?.data?.subtopics || []}
+            topics={statistics?.data?.topics || []}
           />
         </div>
        

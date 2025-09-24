@@ -1,63 +1,7 @@
 // API configuration and functions for Takespace-Dekstop-Teacher
 const API_BASE_URL = 'https://dev.takespace.com/api/v1';
 
-// Generic fetcher function to simulate network delay
-const fetcher = (data) => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(data), 500);
-  });
-};
-
-// Mock data for development
-const mockData = {
-  learning: {
-    subjects: [
-      { id: 1, name: 'Math', icon: '/sidebar/Math.svg', color: '#398AC8' },
-      { id: 2, name: 'Science', icon: '/sidebar/Science.svg', color: '#6FCF97' },
-      { id: 3, name: 'English', icon: '/sidebar/English.svg', color: '#F2C94C' },
-      { id: 4, name: 'Geography', icon: '/sidebar/Geography.svg', color: '#398AC8' }
-    ],
-    grades: [
-      { id: 3, name: 'Grade 3', selected: false },
-      { id: 4, name: 'Grade 4', selected: false },
-      { id: 5, name: 'Grade 5', selected: true },
-      { id: 6, name: 'Grade 6', selected: false },
-      { id: 7, name: 'Grade 7', selected: false }
-    ],
-    topics: {
-      fractions: [
-        { id: 1, name: 'Fractions of a number', status: 'green' },
-        { id: 2, name: 'Fractions of a number: word problems', status: 'green' },
-        { id: 3, name: 'Convert decimals to fractions', status: 'green' },
-        { id: 4, name: 'Add and subtract fractions with like denominators using number lines', status: null },
-        { id: 5, name: 'Add and subtract fractions with like denominators', status: 'yellow' },
-        { id: 6, name: 'Add up to 4 fractions with denominators of 10 and 100', status: null },
-        { id: 7, name: 'Add fractions with unlike denominators', status: 'yellow' },
-        { id: 8, name: 'Subtract fractions with unlike denominators', status: 'yellow' },
-        { id: 9, name: 'Add three or more fractions with unlike denominators', status: null },
-        { id: 10, name: 'Complete addition and subtraction sentences with fractions', status: 'red' },
-        { id: 11, name: 'Geometric sequences with fractions', status: 'red' },
-        { id: 12, name: 'Add and subtract mixed numbers with like denominators', status: 'red' },
-        { id: 13, name: 'Estimate sums and differences of mixed numbers', status: null },
-        { id: 14, name: 'Add mixed numbers with unlike denominators', status: 'red' }
-      ],
-      decimals: [
-        { id: 1, name: 'Multiply a decimal by a power of ten', status: null },
-        { id: 2, name: 'Decimal division patterns over increasing place values', status: null },
-        { id: 3, name: 'Add and subtract decimals: word problems', status: null },
-        { id: 4, name: 'Multiply decimals and whole numbers: word problems', status: null },
-        { id: 5, name: 'Division with decimal quotients: word problems', status: null },
-        { id: 6, name: 'Add, subtract, multiply and divide decimals: word problems', status: null },
-        { id: 7, name: 'Round decimals', status: null },
-        { id: 8, name: 'Estimate sums and differences of decimals', status: null },
-        { id: 9, name: 'Estimate products of decimals', status: null },
-        { id: 10, name: 'Geometric sequences with fractions', status: null },
-        { id: 11, name: 'Add and subtract mixed numbers with like denominators', status: null },
-        { id: 12, name: 'Choose decimals with a particular sum or difference', status: null }
-      ]
-    }
-  }
-};
+// Generic fetcher has been removed; no mock delays
 
 // API request helper
 const apiRequest = async (url, options = {}) => {
@@ -113,7 +57,10 @@ const apiRequest = async (url, options = {}) => {
 };
 
 // Learning page data
-const getLearningData = async () => fetcher(mockData.learning);
+// Removed mock fallback. Use real endpoints only via specific calls below.
+const getLearningData = async () => {
+  throw new Error('getLearningData is deprecated. Use getSubjects/getGrades/getUnits instead.');
+};
 
 // Auth functions
 const login = async (username, password) => {
@@ -146,23 +93,7 @@ const login = async (username, password) => {
     }
     return json;
   } catch (error) {
-    // For development, return mock success if API fails
-    console.warn('API login failed, using mock data:', error.message);
-    return {
-      data: {
-        tokens: {
-          access: 'mock_access_token',
-          refresh: 'mock_refresh_token'
-        },
-        user: {
-          id: 1,
-          username: username,
-          email: `${username}@example.com`,
-          first_name: 'Teacher',
-          last_name: 'User'
-        }
-      }
-    };
+    throw error;
   }
 };
 
@@ -512,61 +443,7 @@ const getTeacherAnalyticsPageData = async (filters = {}) => {
     
     return formattedData;
   } catch (err) {
-    console.error('API Error, falling back to mock data:', err);
-    // Fallback to mock data with same structure
-    return {
-      homeworkQuestions: {
-        labels: ['Mia Alexander', 'Bandar Alharty', 'Avim/Angela', 'Aaradhya Aoyagi', 'Allika Arun'],
-        data: [120, 130, 95, 160, 110],
-        average: 157,
-        goal: 120
-      },
-      classroomQuestions: {
-        labels: ['Mia Alexander', 'Bandar Alharty', 'Avim/Angela', 'Aaradhya Aoyagi', 'Allika Arun'],
-        data: [115, 165, 95, 130, 75],
-        average: 140,
-        goal: 100
-      },
-      charts: {
-        homeworkToClasswork: {
-          data: [{ label: 'Homework', value: 7473 }, { label: 'Classwork', value: 5104 }]
-        },
-        timeComparison: {
-          data: [{ label: 'Homework', value: 651 }, { label: 'Classwork', value: 204 }]
-        },
-        teacherEngagement: {
-          percentage: 75
-        }
-      },
-      leaderboard: {
-        mathematics: [
-          { id: 'm1', name: 'Homophones with pictures', count: 14 },
-          { id: 'm2', name: 'Multiple-meaning words', count: 13 },
-          { id: 'm3', name: 'Choose the antonym', count: 10 },
-          { id: 'm4', name: 'Interpret remainders', count: 9 },
-          { id: 'm5', name: 'Fractions of a number', count: 9 }
-        ],
-        english: [
-          { id: 'e1', name: 'Homophones with pictures', count: 14 },
-          { id: 'e2', name: 'Multiple-meaning words', count: 13 },
-          { id: 'e3', name: 'Choose the antonym', count: 10 },
-          { id: 'e4', name: 'Interpret remainders', count: 9 },
-          { id: 'e5', name: 'Fractions of a number', count: 9 }
-        ],
-        science: [
-          { id: 's1', name: 'Homophones with pictures', count: 14 },
-          { id: 's2', name: 'Multiple-meaning words', count: 13 },
-          { id: 's3', name: 'Choose the antonym', count: 10 },
-          { id: 's4', name: 'Interpret remainders', count: 9 },
-          { id: 's5', name: 'Fractions of a number', count: 9 }
-        ]
-      },
-      goals: {
-        practiceTime: 5,
-        topicsMastered: 5,
-        examDate: ''
-      }
-    };
+    throw err;
   }
 };
 

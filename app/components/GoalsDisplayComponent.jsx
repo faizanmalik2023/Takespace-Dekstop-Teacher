@@ -226,38 +226,12 @@ const TopicsMasteredProgressBar = ({ lastWeekValue, lastWeekGoal, last30DaysValu
 };
 
 // Main Goals Display Component
-const GoalsDisplayComponent = ({ dateRange, grade, subject }) => {
-  // Mock data based on filters - in real app this would come from API
-  const getMockData = () => {
-    // This would be replaced with actual API call based on dateRange, grade, subject
-    return {
-      mark: {
-        predicted: 70,
-        goal: 75,
-        unit: "%"
-      },
-      practiceTimeLastWeek: {
-        current: "8h 23m",
-        goal: "6h 13m"
-      },
-      practiceTimeLast30Days: {
-        current: "8h 23m", 
-        goal: "6h 13m"
-      },
-      timeToExam: {
-        predicted: "3 months",
-        goal: "2.5 months"
-      },
-      topicsMastered: {
-        lastWeek: 7,
-        lastWeekGoal: 8,
-        last30Days: 25,
-        last30DaysGoal: 8
-      }
-    };
-  };
-
-  const data = getMockData();
+const GoalsDisplayComponent = ({ data }) => {
+  if (!data) {
+    return (
+      <div className="space-y-6 rounded-lg  border  bg-white p-6 text-gray-500">No goals available</div>
+    );
+  }
 
   return (
     <div className="space-y-6 rounded-lg  border  bg-white p-6">

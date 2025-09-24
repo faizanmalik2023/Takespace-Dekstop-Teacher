@@ -91,14 +91,9 @@ const TopicItem = ({ topic, onToggle }) => {
 };
 
 // Main Units and Topics Component
-const UnitsAndTopicsComponent = ({ dateRange, grade, subject, fullScreen = false }) => {
-  const [subtopics, setSubtopics] = useState(() => {
-    return getMockSubtopics(grade, subject);
-  });
-
-  const [topics, setTopics] = useState(() => {
-    return getMockTopics(grade, subject);
-  });
+const UnitsAndTopicsComponent = ({ subtopics: initialSubtopics = [], topics: initialTopics = [], fullScreen = false }) => {
+  const [subtopics, setSubtopics] = useState(initialSubtopics);
+  const [topics, setTopics] = useState(initialTopics);
 
   const handleSubTopicToggle = (subtopicId) => {
     setSubtopics(prevSubtopics => 
@@ -162,7 +157,7 @@ const UnitsAndTopicsComponent = ({ dateRange, grade, subject, fullScreen = false
         <div className="w-1/2">
           <div className={`${fullScreen ? 'h-full' : ''} rounded-lg p-4`}>
             {/* Main Topic Title */}
-            <h3 className="text-lg font-bold text-gray-900 mb-4">5.1 Fractions</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Units and Subtopics</h3>
             
             {/* Scrollable Subtopics List */}
             <div className={`${fullScreen ? 'h-[calc(100%-4rem)]' : 'max-h-96'} overflow-y-auto pr-2 blue-scrollbar`}>
@@ -201,8 +196,8 @@ const UnitsAndTopicsComponent = ({ dateRange, grade, subject, fullScreen = false
   );
 };
 
-// Mock data function for subtopics - this would be replaced with API call
-const getMockSubtopics = (grade, subject) => {
+// Mock generators retained only as placeholders but not used anymore
+const getMockSubtopics = () => {
   const subtopicsBySubject = {
     math: [
       { id: 1, number: 1, title: "Fractions of a number", status: 'completed', isCompleted: true },
@@ -279,11 +274,10 @@ const getMockSubtopics = (grade, subject) => {
     ]
   };
 
-  return subtopicsBySubject[subject] || subtopicsBySubject.math;
+  return subtopicsBySubject.math;
 };
 
-// Mock data function for topics - this would be replaced with API call
-const getMockTopics = (grade, subject) => {
+const getMockTopics = () => {
   // Different topics based on grade and subject
   const topicsBySubject = {
     math: [
@@ -361,8 +355,7 @@ const getMockTopics = (grade, subject) => {
     ]
   };
 
-  // Return topics based on selected subject, default to math if subject not found
-  return topicsBySubject[subject] || topicsBySubject.math;
+  return topicsBySubject.math;
 };
 
 export default UnitsAndTopicsComponent; 

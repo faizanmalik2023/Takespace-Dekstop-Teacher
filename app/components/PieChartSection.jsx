@@ -1,49 +1,6 @@
 "use client"
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
-import { useState, useEffect } from 'react'
-
-// Mock data for the pie charts
-const generateMockData = (type, dateRange, grade, subject) => {
-  // Adjust data based on filters for more realistic variation
-  const gradeMultiplier = grade === 'all' ? 1 : parseInt(grade.split('-')[1]) * 0.2
-  const subjectMultiplier = subject === 'all' ? 1 : 
-    subject === 'math' ? 1.2 : 
-    subject === 'science' ? 1.1 : 
-    subject === 'english' ? 0.9 : 0.8
-  
-  // Adjust based on date range
-  const dateMultiplier = dateRange === 'last-7' ? 0.3 :
-    dateRange === 'last-30' ? 1 :
-    dateRange === 'last-90' ? 2.5 :
-    dateRange === 'last-180' ? 4 :
-    dateRange === 'last-365' ? 8 : 1
-
-  if (type === 'questions') {
-    const baseClassQuestions = Math.floor(112 * gradeMultiplier * subjectMultiplier * dateMultiplier)
-    const baseHomeQuestions = Math.floor(70 * gradeMultiplier * subjectMultiplier * dateMultiplier)
-    const total = baseClassQuestions + baseHomeQuestions
-    const classPercentage = Math.round((baseClassQuestions / total) * 100 * 10) / 10
-    const homePercentage = Math.round((baseHomeQuestions / total) * 100 * 10) / 10
-    
-    return [
-      { name: 'Class', value: baseClassQuestions, percentage: classPercentage, color: '#3B82F6' },
-      { name: 'Home', value: baseHomeQuestions, percentage: homePercentage, color: '#1E40AF' }
-    ]
-  } else if (type === 'time') {
-    const baseClassTime = Math.floor(632 * gradeMultiplier * subjectMultiplier * dateMultiplier)
-    const baseHomeTime = Math.floor(189 * gradeMultiplier * subjectMultiplier * dateMultiplier)
-    const total = baseClassTime + baseHomeTime
-    const classPercentage = Math.round((baseClassTime / total) * 100 * 10) / 10
-    const homePercentage = Math.round((baseHomeTime / total) * 100 * 10) / 10
-    
-    return [
-      { name: 'Class', value: baseClassTime, percentage: classPercentage, color: '#3B82F6' },
-      { name: 'Home', value: baseHomeTime, percentage: homePercentage, color: '#1E40AF' }
-    ]
-  }
-  return []
-}
 
 // Custom tooltip for pie charts
 const CustomTooltip = ({ active, payload }) => {
@@ -167,22 +124,7 @@ function PieChartItem({ data, rightLabels }) {
   )
 }
 
-export default function PieChartSection({ dateRange, grade, subject }) {
-  const [questionsData, setQuestionsData] = useState([])
-  const [timeData, setTimeData] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    setIsLoading(true)
-    // Simulate API call delay for more realistic behavior
-    const timer = setTimeout(() => {
-      setQuestionsData(generateMockData('questions', dateRange, grade, subject))
-      setTimeData(generateMockData('time', dateRange, grade, subject))
-      setIsLoading(false)
-    }, 300)
-    
-    return () => clearTimeout(timer)
-  }, [dateRange, grade, subject])
+export default function PieChartSection({ questionsData = [], timeData = [] }) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 h-full flex flex-col">
@@ -193,10 +135,8 @@ export default function PieChartSection({ dateRange, grade, subject }) {
       
       {/* Pie Charts */}
       <div className="flex-1 flex flex-col justify-center space-y-12">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
+        {(questionsData.length === 0 && timeData.length === 0) ? (
+          <div className="flex items-center justify-center h-full text-gray-500">No data available</div>
         ) : (
           <>
             {/* Questions Pie Chart */}
