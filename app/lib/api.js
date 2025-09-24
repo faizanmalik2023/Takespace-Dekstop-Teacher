@@ -87,7 +87,23 @@ const apiRequest = async (url, options = {}) => {
     const text = await response.text();
     let body = null;
     try { body = text ? JSON.parse(text) : null; } catch (_) {}
-    const error = new Error(body?.error || body?.message || `API request failed: ${response.status} ${response.statusText}`);
+
+    // Build a human-readable message even if API returns objects
+    const extractMessage = (payload) => {
+      if (!payload) return null;
+      if (typeof payload === 'string') return payload;
+      if (typeof payload === 'object') {
+        if (payload.message && typeof payload.message === 'string') return payload.message;
+        if (payload.detail && typeof payload.detail === 'string') return payload.detail;
+        if (payload.error) return extractMessage(payload.error) || JSON.stringify(payload.error);
+        return JSON.stringify(payload);
+      }
+      return String(payload);
+    };
+
+    const message = extractMessage(body) || `API request failed: ${response.status} ${response.statusText}`;
+
+    const error = new Error(message);
     error.status = response.status;
     error.body = body;
     throw error;
@@ -324,6 +340,21 @@ const getUnits = async (subjectId, grade = null) => {
 // Teacher Analytics API functions
 const getTeacherAnalyticsAPI = async (filters = {}) => {
   try {
+    // Resolve teacher id: prefer explicit filter, else from stored user
+    let teacherId = filters.teacherId;
+    if (!teacherId && typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          teacherId = parsed?.id || parsed?.teacher_id || parsed?.user_id;
+        }
+      } catch (_) {}
+    }
+    if (!teacherId) {
+      throw new Error('Missing teacher id for analytics');
+    }
+
     const params = new URLSearchParams();
     if (filters.dateRange) {
       // Map filter values to API expected values
@@ -358,7 +389,7 @@ const getTeacherAnalyticsAPI = async (filters = {}) => {
       }
     }
     
-    const url = `${API_BASE_URL}/admin/teacher-analytics/10/?${params.toString()}`;
+    const url = `https://dev.takespace.com/admin/v1/teacher-analytics/${teacherId}/?${params.toString()}`;
     const data = await apiRequest(url);
     return data;
   } catch (error) {
@@ -555,7 +586,23 @@ export const api = {
   // Teacher Analytics API functions
   getTeacherAnalyticsAPI,
   updateSubjectGoals,
-  getTeacherAnalyticsPageData
+  getTeacherAnalyticsPageData,
+  // Student APIs will be appended below
 };
 
 export default api;
+// --- Student APIs for teacher ---
+export const getStudentProgress = async (studentId, subjectId, dateRange = 'last_30_days') => {
+  const url = `${API_BASE_URL}/teacher/students/${studentId}/progress/${subjectId}/?date_range=${encodeURIComponent(dateRange)}`;
+  return apiRequest(url);
+};
+
+export const getStudentStatistics = async (studentId, subjectId, dateRange = 'last_30_days') => {
+  const url = `${API_BASE_URL}/teacher/students/${studentId}/statistics/${subjectId}/?date_range=${encodeURIComponent(dateRange)}`;
+  return apiRequest(url);
+};
+
+export const updateStudentGoals = async (studentId, subjectId, payload) => {
+  const url = `${API_BASE_URL}/teacher/students/${studentId}/goals/${subjectId}/`;
+  return apiRequest(url, { method: 'PATCH', body: JSON.stringify(payload) });
+};

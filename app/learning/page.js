@@ -139,12 +139,23 @@ const LearningPage = () => {
   };
 
   // Prepare units data for left column
-  const unitsData = units.map(unit => ({
-    id: unit.id,
-    name: unit.name,
-    grade: unit.grade,
-    topics: unit.topics || []
-  }));
+  const unitsData = units.map(unit => {
+    const mappedTopics = (unit.topics || []).map(t => ({
+      id: t.id,
+      name: t.name,
+      status: t.mastery_level || null,
+      mastery_color: t.mastery_color || null
+    }));
+    const unitColor = mappedTopics.length > 0 ? (mappedTopics[0].mastery_color || null) : null;
+    return {
+      id: unit.id,
+      name: unit.name,
+      grade: unit.grade,
+      mastery_color: unitColor,
+      statusColor: unitColor,
+      topics: mappedTopics
+    };
+  });
 
   // Prepare topics data for right column
   const topicsData = selectedUnit ? selectedUnit.topics || [] : [];
@@ -261,7 +272,7 @@ const LearningPage = () => {
             leftColumn={{
                 title: 'Units',
                 topics: unitsData,
-                showStatus: false,
+                showStatus: true,
                 onItemClick: handleUnitSelect,
                 selectedItem: selectedUnit
             }}

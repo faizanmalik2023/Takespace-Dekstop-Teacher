@@ -59,23 +59,26 @@ const TopicsDisplay = ({
     recalcTrackMetrics();
   };
 
-  const getStatusDot = (status) => {
-    if (!status) return null;
-    
-    const colors = {
-      green: '#6AA84F',
-      yellow: '#FFD966',
-      red: '#FF0000'
-    };
+  const getStatusDot = (statusOrColor) => {
+    if (!statusOrColor) return null;
+
+    // Accept either a named status or a hex color string
+    const namedColors = { green: '#6AA84F', yellow: '#FFD966', red: '#FF0000', white: '#FFFFFF' };
+    const color = (typeof statusOrColor === 'string' && statusOrColor.startsWith('#'))
+      ? statusOrColor
+      : namedColors[statusOrColor] || null;
+    if (!color) return null;
 
     return (
       <div 
         className="rounded-full flex-shrink-0"
         style={{
-          width: '9px',
-          height: '9px',
-          backgroundColor: colors[status],
-          borderRadius: '30px'
+          width: '10px',
+          height: '10px',
+          backgroundColor: color,
+          borderRadius: '30px',
+          border: '1px solid #D1D5DB',
+          boxShadow: color === '#FFFFFF' ? '0 0 0 2px rgba(0,0,0,0.05) inset' : 'none'
         }}
       />
     );
@@ -158,23 +161,22 @@ const TopicsDisplay = ({
                 return (
                   <div 
                     key={topic.id || index} 
-                    className={`flex items-center justify-between py-2.5 ${leftColumn.onItemClick ? 'cursor-pointer hover:bg-gray-50' : ''} ${isSelected ? 'bg-blue-50' : ''}`}
+                    className={`flex items-center gap-2.5 py-2.5 ${leftColumn.onItemClick ? 'cursor-pointer hover:bg-gray-50' : ''} ${isSelected ? 'bg-blue-50' : ''}`}
                     onClick={() => leftColumn.onItemClick && leftColumn.onItemClick(topic)}
                   >
                     <span 
-                      className="flex-1 mr-4"
                       style={{
                         fontFamily: 'Roboto, sans-serif',
                         fontStyle: 'normal',
                         fontWeight: isSelected ? 600 : 400,
                         fontSize: 'clamp(11px, 2vw, 13px)',
-                        lineHeight: '39px',
+                        lineHeight: '24px',
                         color: isSelected ? '#2563eb' : '#000000'
                       }}
                     >
                       {index + 1}. {topic.name}
                     </span>
-                    {leftColumn.showStatus && getStatusDot(topic.status)}
+                    {leftColumn.showStatus && getStatusDot(topic.mastery_color || topic.statusColor || topic.status)}
                   </div>
                 );
               })}
@@ -233,21 +235,20 @@ const TopicsDisplay = ({
             <div>
               {rightColumn.topics.length > 0 ? (
                 rightColumn.topics.map((topic, index) => (
-                  <div key={topic.id || index} className="flex items-center justify-between py-2.5">
+                  <div key={topic.id || index} className="flex items-center gap-2.5 py-2.5">
                     <span 
-                      className="flex-1 mr-4"
                       style={{
                         fontFamily: 'Roboto, sans-serif',
                         fontStyle: 'normal',
                         fontWeight: 400,
                         fontSize: 'clamp(11px, 2vw, 13px)',
-                        lineHeight: '39px',
+                        lineHeight: '24px',
                         color: '#000000'
                       }}
                     >
                       {index + 1}. {topic.name}
                     </span>
-                    {rightColumn.showStatus && getStatusDot(topic.status)}
+                    {rightColumn.showStatus && getStatusDot(topic.mastery_color || topic.statusColor || topic.status)}
                   </div>
                 ))
               ) : (

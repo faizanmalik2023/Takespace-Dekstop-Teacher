@@ -2,13 +2,14 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { DashboardHeader } from "@/app/components/Header"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import FilterDropdown from "@/app/components/FilterDropdown"
 import PracticeChart from "@/app/components/PracticeChart"
 import PieChartSection from "@/app/components/PieChartSection"
 import TopicsMasteryChart from "@/app/components/TopicsMasteryChart"
 import GoalsDisplayComponent from "@/app/components/GoalsDisplayComponent"
 import UnitsAndTopicsComponent from "@/app/components/UnitsAndTopicsComponent"
+import { getStudentProgress, getStudentStatistics, updateStudentGoals } from "@/app/lib/api"
 // Mock students data (same as in MainContent)
 const mockStudents = [
   {
@@ -140,11 +141,11 @@ const subjectOptions = [
 ]
 
 const dateRangeOptions = [
-  { id: 'last-7', label: 'Last 7 days' },
-  { id: 'last-30', label: 'Last 30 days' },
-  { id: 'last-90', label: 'Last 90 days' },
-  { id: 'last-180', label: 'Last 180 days' },
-  { id: 'last-365', label: 'Last year' },
+  { id: 'last_7_days', label: 'Last 7 days' },
+  { id: 'last_30_days', label: 'Last 30 days' },
+  { id: 'last_year', label: 'Last year' },
+  { id: 'today', label: 'Today' },
+  { id: 'yesterday', label: 'Yesterday' },
 ]
 const imgGroup = "/c8c0fee716a27772f1443d814e6c1e60aa4adee0.svg"
 
@@ -154,9 +155,34 @@ export default function StudentInfoPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedGrade, setSelectedGrade] = useState('all')
   const [selectedSubject, setSelectedSubject] = useState('all')
-  const [selectedDateRange, setSelectedDateRange] = useState('last-30')
+  const [selectedDateRange, setSelectedDateRange] = useState('last_30_days')
+  const [progress, setProgress] = useState(null)
+  const [statistics, setStatistics] = useState(null)
+  const [loading, setLoading] = useState(false)
   const studentId = parseInt(params.id)
   const student = mockStudents.find(s => s.id === studentId)
+
+  // TODO: Replace with real subject selection; default to Math:1 for now
+  const subjectId = 1
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true)
+      try {
+        const [p, s] = await Promise.all([
+          getStudentProgress(studentId, subjectId, selectedDateRange),
+          getStudentStatistics(studentId, subjectId, selectedDateRange)
+        ])
+        setProgress(p)
+        setStatistics(s)
+      } catch (e) {
+        console.error('Failed to load student data', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (studentId) load()
+  }, [studentId, subjectId, selectedDateRange])
 
   if (!student) {
     return (
@@ -234,20 +260,27 @@ export default function StudentInfoPage() {
           <div className="flex flex-col xl:flex-row gap-6">
             {/* Left Column - Chart */}
             <div className="w-full lg:w-[60%]">
-              <PracticeChart 
-                dateRange={selectedDateRange}
-                grade={selectedGrade}
-                subject={selectedSubject}
-              />
+              {loading && (
+                <div className="h-72 flex items-center justify-center">Loading...</div>
+              )}
+              {!loading && progress && (
+                <PracticeChart 
+                  dateRange={selectedDateRange}
+                  grade={selectedGrade}
+                  subject={selectedSubject}
+                />
+              )}
             </div>
             
             {/* Right Column - Pie Chart Section */}
             <div className="w-full lg:w-[40%] h-full">
-              <PieChartSection 
-                dateRange={selectedDateRange}
-                grade={selectedGrade}
-                subject={selectedSubject}
-              />
+              {progress && (
+                <PieChartSection 
+                  dateRange={selectedDateRange}
+                  grade={selectedGrade}
+                  subject={selectedSubject}
+                />
+              )}
             </div>
           </div>
         </div>
