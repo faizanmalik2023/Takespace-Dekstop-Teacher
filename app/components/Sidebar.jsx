@@ -2,6 +2,8 @@
 
 import { ChevronDown, X } from "lucide-react"
 import { useState } from "react"
+import { SidebarLoader } from "./loaders/SidebarLoader.jsx"
+import { NoDataMessage } from "./loaders/NoDataMessage.jsx"
 
 // Default fallback data
 const defaultSubjects = [
@@ -20,7 +22,7 @@ const defaultGrades = [
 // Book icons array for rotation
 const bookIcons = ["/icons/book1.svg", "/icons/book2.svg", "/icons/book3.svg"]
 
-export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGrade, onSubjectChange, onGradeChange, subjects = defaultSubjects, grades = defaultGrades }) {
+export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGrade, onSubjectChange, onGradeChange, subjects = defaultSubjects, grades = defaultGrades, loading = false }) {
   const [subjectOpen, setSubjectOpen] = useState(true)
   const [gradeOpen, setGradeOpen] = useState(true)
 
@@ -71,43 +73,58 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
           </button>
           {subjectOpen && (
             <div className="space-y-1">
-              {subjects.map((subject, index) => (
-                <div key={subject.id}>
-                  <button
-                    onClick={() => {
-                      onSubjectChange?.(subject)
-                      // Close sidebar on mobile after selection
-                      if (window.innerWidth < 768) {
-                        onClose?.()
-                      }
-                    }}
-                    className={`flex items-center space-x-3 w-full p-2 pl-4 rounded transition-colors ${
-                      selectedSubject && selectedSubject.id === subject.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-center">
-                      {subject.icon ? (
-                        <img 
-                          src={subject.icon} 
-                          alt={`${subject.name} icon`}
-                          className="w-[26px] h-[26px]"
-                        />
-                      ) : (
-                        <img 
-                          src={bookIcons[index % bookIcons.length]} 
-                          alt={`${subject.name} icon`}
-                          className="w-[26px] h-[26px]"
-                        />
-                      )}
+              {loading ? (
+                <div className="space-y-1">
+                  {[1, 2, 3].map((item) => (
+                    <div key={item} className="flex items-center space-x-3 p-2 pl-4">
+                      <div className="w-[26px] h-[26px] bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                     </div>
-                    <span className="text-[16px] pl-3 text-[#4F4F4F]">{subject.name}</span>
-                  </button>
-                  {/* Add divider after each subject except the last one */}
-                  {index < subjects.length - 1 && (
-                    <div className="h-px bg-[#F2F2F2] mx-4"></div>
-                  )}
+                  ))}
                 </div>
-              ))}
+              ) : subjects.length > 0 ? (
+                subjects.map((subject, index) => (
+                  <div key={subject.id}>
+                    <button
+                      onClick={() => {
+                        onSubjectChange?.(subject)
+                        // Close sidebar on mobile after selection
+                        if (window.innerWidth < 768) {
+                          onClose?.()
+                        }
+                      }}
+                      className={`flex items-center space-x-3 w-full p-2 pl-4 rounded transition-colors ${
+                        selectedSubject && selectedSubject.id === subject.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-center">
+                        {subject.icon ? (
+                          <img 
+                            src={subject.icon} 
+                            alt={`${subject.name} icon`}
+                            className="w-[26px] h-[26px]"
+                          />
+                        ) : (
+                          <img 
+                            src={bookIcons[index % bookIcons.length]} 
+                            alt={`${subject.name} icon`}
+                            className="w-[26px] h-[26px]"
+                          />
+                        )}
+                      </div>
+                      <span className="text-[16px] pl-3 text-[#4F4F4F]">{subject.name}</span>
+                    </button>
+                    {/* Add divider after each subject except the last one */}
+                    {index < subjects.length - 1 && (
+                      <div className="h-px bg-[#F2F2F2] mx-4"></div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="p-4">
+                  <NoDataMessage type="subjects" />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -127,31 +144,46 @@ export function DashboardSidebar({ isOpen, onClose, selectedSubject, selectedGra
           </button>
           {gradeOpen && (
             <div className="space-y-1">
-              {grades.map((grade, index) => (
-                <div key={grade.id}>
-                  <button
-                    onClick={() => {
-                      onGradeChange?.(grade)
-                      // Close sidebar on mobile after selection
-                      if (window.innerWidth < 768) {
-                        onClose?.()
-                      }
-                    }}
-                    className={`flex items-center space-x-3 w-full p-2 pl-4 rounded transition-colors ${
-                      selectedGrade && selectedGrade.id === grade.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="w-[26px] h-[26px] bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-[15px] font-medium text-gray-700">{grade.id}</span>
+              {loading ? (
+                <div className="space-y-1">
+                  {[1, 2, 3, 4].map((item) => (
+                    <div key={item} className="flex items-center space-x-3 p-2 pl-4">
+                      <div className="w-[26px] h-[26px] bg-gray-200 rounded-full animate-pulse"></div>
+                      <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
                     </div>
-                    <span className="text-[16px] pl-[8px] text-[#4F4F4F]">{grade.name}</span>
-                  </button>
-                  {/* Add divider after each grade except the last one */}
-                  {index < grades.length - 1 && (
-                    <div className="h-px bg-[#F2F2F2] mx-4"></div>
-                  )}
+                  ))}
                 </div>
-              ))}
+              ) : grades.length > 0 ? (
+                grades.map((grade, index) => (
+                  <div key={grade.id}>
+                    <button
+                      onClick={() => {
+                        onGradeChange?.(grade)
+                        // Close sidebar on mobile after selection
+                        if (window.innerWidth < 768) {
+                          onClose?.()
+                        }
+                      }}
+                      className={`flex items-center space-x-3 w-full p-2 pl-4 rounded transition-colors ${
+                        selectedGrade && selectedGrade.id === grade.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="w-[26px] h-[26px] bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-[15px] font-medium text-gray-700">{grade.id}</span>
+                      </div>
+                      <span className="text-[16px] pl-[8px] text-[#4F4F4F]">{grade.name}</span>
+                    </button>
+                    {/* Add divider after each grade except the last one */}
+                    {index < grades.length - 1 && (
+                      <div className="h-px bg-[#F2F2F2] mx-4"></div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="p-4">
+                  <NoDataMessage type="grades" />
+                </div>
+              )}
             </div>
           )}
         </div>

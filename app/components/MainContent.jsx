@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { CardLoaders } from "./loaders/CardLoader.jsx"
+import { NoDataMessage } from "./loaders/NoDataMessage.jsx"
 
 // Helper function to generate avatar initials
 const getAvatarInitials = (name) => {
@@ -287,24 +289,17 @@ export function MainContent({ selectedSubject, selectedGrade, students = [], loa
       {/* Student Cards */}
       <div className="space-y-4">
         {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="text-[#103358]">Loading students...</div>
-          </div>
+          <CardLoaders count={4} />
         ) : formattedStudents.length > 0 ? (
           formattedStudents.map((student) => (
             <StudentCard key={student.id} student={student} />
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center h-32">
-            <div className="text-gray-400 text-4xl mb-2">👥</div>
-            <div className="text-gray-500 text-lg mb-1">No Students Found</div>
-            <div className="text-gray-400 text-sm text-center">
-              {selectedSubject && selectedGrade 
-                ? `No students found for ${selectedSubject.name} - ${selectedGrade.name}`
-                : 'Please select a subject and grade to view students'
-              }
-            </div>
-          </div>
+          <NoDataMessage 
+            type="students" 
+            subject={selectedSubject?.name} 
+            grade={selectedGrade?.name} 
+          />
         )}
       </div>
     </div>

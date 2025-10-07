@@ -20,17 +20,42 @@ const formatDate = (date, isToday) => {
 
 export default function PracticeChart({ data }) {
   const chartData = useMemo(() => {
-    if (!Array.isArray(data)) return []
-    return data.map(d => ({
-      date: d.date instanceof Date ? d.date : new Date(d.date),
-      formattedDate: formatDate(d.date instanceof Date ? d.date : new Date(d.date), false),
-      practiceTime: Number(d.practiceTime ?? d.practice_time ?? 0),
-      goalTime: Number(d.goalTime ?? d.goal_time ?? 0),
-    }))
+    // Supports two shapes:
+    // 1) Array of objects with {date, practice_time, goal_time}
+    // 2) Object with { labels: string[], data: { attempted, correct }[] }
+    if (!data) return []
+
+    // Shape 2: {labels, data}
+    if (!Array.isArray(data) && Array.isArray(data?.data) && Array.isArray(data?.labels)) {
+      const labels = data.labels
+      const points = data.data
+      const len = Math.min(labels.length, points.length)
+      return Array.from({ length: len }).map((_, i) => {
+        const point = points[i] || {}
+        const attempted = Number(point.attempted ?? 0)
+        const correct = Number(point.correct ?? 0)
+        return {
+          formattedDate: String(labels[i] ?? ''),
+          practiceTime: attempted, // map attempted -> primary bar
+          goalTime: correct,       // map correct -> secondary bar
+        }
+      })
+    }
+
+    // Shape 1: Array of objects
+    if (Array.isArray(data)) {
+      return data.map(d => ({
+        date: d.date instanceof Date ? d.date : new Date(d.date),
+        formattedDate: formatDate(d.date instanceof Date ? d.date : new Date(d.date), false),
+        practiceTime: Number(d.practiceTime ?? d.practice_time ?? 0),
+        goalTime: Number(d.goalTime ?? d.goal_time ?? 0),
+      }))
+    }
+
+    return []
   }, [data])
   
-  // Calculate minimum width based on data points
-  const minWidth = Math.max(600, chartData.length * 40)
+  // Removed horizontal scroll; chart will be responsive within its container
   
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }) => {
@@ -58,74 +83,68 @@ export default function PracticeChart({ data }) {
         <div className="text-lg font-semibold text-gray-900">Practice by day</div>
       </div>
       
-      {/* Chart Container */}
-      <div className="flex-1 w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative min-h-[300px]">
-        {/* Scroll indicator */}
-        <div className="absolute top-2 right-2 text-xs text-gray-400 bg-white px-2 py-1 rounded opacity-75">
-          Scroll →
-        </div>
+      {/* Chart Container without horizontal scroll */}
+      <div className="flex-1 w-full min-h-[300px]">
         {chartData.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">No data available</div>
         ) : (
-          <div className="h-full" style={{ minWidth: `${minWidth}px` }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid 
-                  strokeDasharray="3 3" 
-                  stroke="#E5E7EB" 
-                  horizontal={true}
-                  vertical={false}
-                />
-                <XAxis 
-                  dataKey="formattedDate" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6B7280' }}
-                  tickMargin={10}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6B7280' }}
-                  tickMargin={10}
-                  tickFormatter={(value) => value.toLocaleString()}
-                  domain={[0, 'dataMax + 1000']}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar 
-                  dataKey="practiceTime" 
-                  fill="#1E40AF" 
-                  radius={[2, 2, 0, 0]}
-                  barSize={8}
-                />
-                <Bar 
-                  dataKey="goalTime" 
-                  fill="#3B82F6" 
-                  radius={[2, 2, 0, 0]}
-                  barSize={8}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{
+                top: 20,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+              barCategoryGap="20%"
+            >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="#E5E7EB" 
+                horizontal={true}
+                vertical={false}
+              />
+              <XAxis 
+                dataKey="formattedDate" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: '#398AC8' }}
+                tickMargin={10}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: '#6B7280' }}
+                tickMargin={10}
+                tickFormatter={(value) => value.toLocaleString()}
+                domain={[0, 'dataMax + 1000']}
+                allowDecimals={false}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar 
+                dataKey="practiceTime" 
+                fill="#0B2848" 
+                radius={[2, 2, 0, 0]}
+              />
+              <Bar 
+                dataKey="goalTime" 
+                fill="#3A86D1" 
+                radius={[2, 2, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         )}
       </div>
       
       {/* Chart Legend */}
       <div className="flex items-center justify-center space-x-6 mt-4">
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-[#1E40AF] rounded"></div>
+          <div className="w-3 h-3" style={{ backgroundColor: '#0B2848' }}></div>
           <span className="text-sm text-gray-600">Practice Time</span>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-[#3B82F6] rounded"></div>
+          <div className="w-3 h-3" style={{ backgroundColor: '#3A86D1' }}></div>
           <span className="text-sm text-gray-600">Goal Time</span>
         </div>
       </div>

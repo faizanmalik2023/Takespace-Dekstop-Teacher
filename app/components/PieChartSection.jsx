@@ -1,19 +1,20 @@
 "use client"
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import VerticalPill from './VerticalPill'
 
 // Custom tooltip for pie charts
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload
-    const isTimeData = data.value > 200 // Assuming time values are larger than question counts
+    const isTimeData = Number(data.value) > 200 // Assuming time values are larger than question counts
     
     return (
       <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
         <p className="text-sm font-medium text-gray-900">{data.name}</p>
         <p className="text-sm text-blue-600">
-          {data.name === 'Class' ? 'Classwork' : 'Homework'}: {data.value}
-          {isTimeData ? 'm' : ' Questions'}
+          {data.name === 'Class' ? 'Classwork' : 'Homework'}: {data.displayValue ?? data.value}
+          {isTimeData ? ((data.displayValue === '-' ) ? '' : 'm') : ' Questions'}
         </p>
         <p className="text-sm text-gray-600">{data.percentage}%</p>
       </div>
@@ -24,11 +25,17 @@ const CustomTooltip = ({ active, payload }) => {
 
 // Custom Pie Chart with Labels
 function CustomPieChart({ data }) {
+    // Ensure the pie renders even when all values are 0 by substituting minimal values
+    const total = Array.isArray(data) ? data.reduce((sum, d) => sum + Number(d.value || 0), 0) : 0
+    const displayData = (total === 0 && Array.isArray(data))
+      ? data.map(d => ({ ...d, value: 1 }))
+      : data
+
     return (
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
-            data={data}
+            data={displayData}
             cx="50%"
             cy="50%"
             outerRadius={90}
@@ -55,7 +62,7 @@ function CustomPieChart({ data }) {
               )
             }}
           >
-            {data.map((entry, index) => (
+            {displayData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
@@ -67,25 +74,25 @@ function CustomPieChart({ data }) {
   
 
 // Individual Pie Chart Component
-function PieChartItem({ data, rightLabels }) {
+function PieChartItem({ data }) {
   // Generate dynamic titles based on data
-  const classData = data.find(item => item.name === 'Class')
-  const homeData = data.find(item => item.name === 'Home')
+  const classData = data.find(item => item.name === 'Class') || { value: 0, percentage: 0, displayValue: '-' }
+  const homeData = data.find(item => item.name === 'Home') || { value: 0, percentage: 0, displayValue: '-' }
   
-  const isTimeData = classData && classData.value > 200
+  const isTimeData = classData && Number(classData.value) > 200
   const title = isTimeData 
-    ? `Classwork Time ${classData?.value}m`
-    : `Classwork Questions ${classData?.value}`
+    ? `Classwork Time ${classData?.displayValue ?? classData?.value}${(classData?.displayValue === '-') ? '' : 'm'}`
+    : `Classwork Questions ${classData?.displayValue ?? classData?.value}`
   const subtitle = isTimeData 
-    ? `Homework Time ${homeData?.value}m`
-    : `Homework Questions ${homeData?.value}`
+    ? `Homework Time ${homeData?.displayValue ?? homeData?.value}${(homeData?.displayValue === '-') ? '' : 'm'}`
+    : `Homework Questions ${homeData?.displayValue ?? homeData?.value}`
 
   return (
     <div className="flex items-center justify-between mb-12 last:mb-0">
       {/* Left side - Pie Chart and Info */}
       <div className="flex items-center space-x-6 flex-1">
         {/* Pie Chart */}
-        <div className="w-48 h-48 flex-shrink-0">
+            <div className="w-48 h-48 flex-shrink-0">
           <CustomPieChart data={data} />
         </div>
         
@@ -99,32 +106,25 @@ function PieChartItem({ data, rightLabels }) {
           {/* Legend */}
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-[#3B82F6] rounded-full"></div>
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#103358' }}></div>
               <span className="text-xs text-gray-600">Class</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-[#1E40AF] rounded-full"></div>
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#398AC8' }}></div>
               <span className="text-xs text-gray-600">Home</span>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Right side - Labels */}
-      {rightLabels && (
-        <div className="text-right flex-shrink-0 ml-6">
-          {rightLabels.map((label, index) => (
-            <div key={index} className="text-xs text-gray-600 mb-2 last:mb-0 whitespace-nowrap">
-              {label}
-            </div>
-          ))}
-        </div>
-      )}
+      {/* No right-side labels per design */}
     </div>
   )
 }
 
-export default function PieChartSection({ questionsData = [], timeData = [] }) {
+// SidePill no longer used
+
+export default function PieChartSection({ questionsData = [], timeData = [], rightTopTexts = [], rightBottomTexts = [] }) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 h-full flex flex-col">
@@ -134,24 +134,44 @@ export default function PieChartSection({ questionsData = [], timeData = [] }) {
       </div>
       
       {/* Pie Charts */}
-      <div className="flex-1 flex flex-col justify-center space-y-12">
-        {(questionsData.length === 0 && timeData.length === 0) ? (
-          <div className="flex items-center justify-center h-full text-gray-500">No data available</div>
-        ) : (
-          <>
-            {/* Questions Pie Chart */}
-            <PieChartItem
-              data={questionsData}
-              rightLabels={["Mastery+ 2%", "Creativity 8"]}
-            />
+      <div className="flex-1 flex flex-row items-stretch">
+        {/* Left content: two stacked pies */}
+        <div className="flex-[1.2] flex flex-col justify-center space-y-12 pr-8">
+          {/* Questions Pie Chart */}
+          <PieChartItem
+            data={Array.isArray(questionsData) && questionsData.length ? questionsData : [
+              { name: 'Class', value: 0, percentage: 0, displayValue: '-', color: '#103358' },
+              { name: 'Home', value: 0, percentage: 0, displayValue: '-', color: '#398AC8' }
+            ]}
+          />
 
-            {/* Time Pie Chart */}
-            <PieChartItem
-              data={timeData}
-              rightLabels={["Creativity + 27"]}
-            />
-          </>
-        )}
+          {/* Divider for desktop */}
+          <div className="h-px w-full border-t border-[#E5E5EF] my-8" />
+
+          {/* Time Pie Chart */}
+          <PieChartItem
+            data={Array.isArray(timeData) && timeData.length ? timeData : [
+              { name: 'Class', value: 0, percentage: 0, displayValue: '-', color: '#103358' },
+              { name: 'Home', value: 0, percentage: 0, displayValue: '-', color: '#398AC8' }
+            ]}
+          />
+        </div>
+        {/* Right-side vertical pills - centered column of up to three */}
+        <div className="hidden lg:flex flex-col items-center h-full py-2" style={{ width: 'clamp(60px, 7vw, 84px)' }}>
+          {(() => {
+            const merged = [
+              ...((rightTopTexts || [])),
+              ...((rightBottomTexts || []))
+            ].slice(0, 3)
+            return (
+              <div className="flex flex-col items-center justify-center h-full w-full" style={{ rowGap: '100px' }}>
+                {merged.map((t, i) => (
+                  <VerticalPill key={`rp-${i}`} text={t} />
+                ))}
+              </div>
+            )
+          })()}
+        </div>
       </div>
     </div>
   )

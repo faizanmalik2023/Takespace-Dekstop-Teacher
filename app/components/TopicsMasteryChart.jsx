@@ -143,11 +143,10 @@ export default function TopicsMasteryChart({ topicsData = [], progressData = {} 
             {/* Pie Chart */}
             <div className="flex-shrink-0">
               <div className="w-64 h-64">
-                {topicsData.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-gray-500">No data</div>
-                ) : (
-                  <CustomPieChart data={topicsData} />
-                )}
+                <CustomPieChart data={Array.isArray(topicsData) && topicsData.length > 0 ? topicsData : [
+                  { name: 'mastered', value: 0, count: 0, percentage: 0, color: '#22C55E' },
+                  { name: 'red', value: 0, count: 0, percentage: 0, color: '#EF4444' }
+                ]} />
               </div>
             </div>
             
@@ -177,12 +176,12 @@ export default function TopicsMasteryChart({ topicsData = [], progressData = {} 
           
           {/* Progress Metrics */}
           <div className="space-y-3">
-            <ProgressMetric label="Mastery" value={progressData.mastery} unit="%" />
-            <ProgressMetric label="Red" value={progressData.red} unit="%" />
-            <ProgressMetric label="Depth" value={progressData.depth} />
-            <ProgressMetric label="Streak" value={progressData.streak} />
-            <ProgressMetric label="Memory" value={progressData.memory} />
-            <ProgressMetric label="Memory" value={progressData.memory} isSet={true} />
+            <ProgressMetric label="Mastery" value={(progressData.mastery ?? 0)} unit="%" />
+            <ProgressMetric label="Red" value={(progressData.red ?? 0)} unit="%" />
+            <ProgressMetric label="Depth" value={(progressData.depth ?? '-')} />
+            <ProgressMetric label="Streak" value={(progressData.streak ?? '-')} />
+            <ProgressMetric label="Memory" value={(progressData.memory ?? '-')} />
+            <ProgressMetric label="Memory" value={(progressData.memory ?? '-')} isSet={true} />
           </div>
         </div>
       </div>
