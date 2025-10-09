@@ -41,12 +41,7 @@ const ProgressBar = ({ currentValue, goalValue, currentColor = "bg-blue-500", go
         ></div>
       </div>
       
-      {/* Set Link */}
-      <div className="text-right">
-        <button className="text-blue-600 text-sm underline hover:text-blue-800 transition-colors">
-          Set
-        </button>
-      </div>
+      
     </div>
   );
 };
@@ -92,12 +87,7 @@ const PracticeTimeProgressBar = ({ currentValue, goalValue, unit = "" }) => {
         ></div>
       </div>
       
-      {/* Set Link */}
-      <div className="text-right">
-        <button className="text-blue-600 text-sm underline hover:text-blue-800 transition-colors">
-          Set
-        </button>
-      </div>
+      
     </div>
   );
 };
@@ -143,12 +133,7 @@ const PracticeTime30DaysProgressBar = ({ currentValue, goalValue, unit = "" }) =
         ></div>
       </div>
       
-      {/* Set Link */}
-      <div className="text-right">
-        <button className="text-blue-600 text-sm underline hover:text-blue-800 transition-colors">
-          Set
-        </button>
-      </div>
+      
     </div>
   );
 };
@@ -184,11 +169,7 @@ const TopicsMasteredProgressBar = ({ lastWeekValue, lastWeekGoal, last30DaysValu
           ></div>
         </div>
         
-        <div className="text-right">
-          <button className="text-blue-600 text-sm underline hover:text-blue-800 transition-colors">
-            Set
-          </button>
-        </div>
+        
       </div>
 
       {/* Last 30 Days Section */}
@@ -215,11 +196,7 @@ const TopicsMasteredProgressBar = ({ lastWeekValue, lastWeekGoal, last30DaysValu
           ></div>
         </div>
         
-        <div className="text-right">
-          <button className="text-blue-600 text-sm underline hover:text-blue-800 transition-colors">
-            Set
-          </button>
-        </div>
+        
       </div>
     </div>
   );

@@ -10,40 +10,22 @@ import TopicsMasteryChart from "@/app/components/TopicsMasteryChart"
 import GoalsDisplayComponent from "@/app/components/GoalsDisplayComponent"
 import UnitsAndTopicsComponent from "@/app/components/UnitsAndTopicsComponent"
 import { getStudentProgress, getStudentStatistics, updateStudentGoals } from "@/app/lib/api"
+import { GRADE_LABELS, SUBJECT_LABELS, DATE_RANGE_LABELS, dateRangeStudentApiValueFromLabel } from "@/app/lib/enum"
 // Removed mockStudents; use API-driven data only
-const gradeOptions = [
-  { id: 'all', label: 'All grades' },
-  { id: 'grade-3', label: 'Grade 3' },
-  { id: 'grade-4', label: 'Grade 4' },
-  { id: 'grade-5', label: 'Grade 5' },
-  { id: 'grade-6', label: 'Grade 6' },
-]
+const gradeOptions = GRADE_LABELS.map(label => ({ id: label, label }))
 
-const subjectOptions = [
-  { id: 'all', label: 'All subjects' },
-  { id: 'math', label: 'Math' },
-  { id: 'science', label: 'Science' },
-  { id: 'english', label: 'English' },
-  { id: 'geography', label: 'Geography' },
-  { id: 'history', label: 'History' },
-]
+const subjectOptions = SUBJECT_LABELS.map(label => ({ id: label, label }))
 
-const dateRangeOptions = [
-  { id: 'last_7_days', label: 'Last 7 days' },
-  { id: 'last_30_days', label: 'Last 30 days' },
-  { id: 'last_year', label: 'Last year' },
-  { id: 'today', label: 'Today' },
-  { id: 'yesterday', label: 'Yesterday' },
-]
+const dateRangeOptions = DATE_RANGE_LABELS.map(label => ({ id: dateRangeStudentApiValueFromLabel(label), label }))
 const imgGroup = "/c8c0fee716a27772f1443d814e6c1e60aa4adee0.svg"
 
 export default function StudentInfoPage() {
   const params = useParams()
   const router = useRouter()
   // Sidebar state not needed without page-level header
-  const [selectedGrade, setSelectedGrade] = useState('all')
-  const [selectedSubject, setSelectedSubject] = useState('all')
-  const [selectedDateRange, setSelectedDateRange] = useState('last_30_days')
+  const [selectedGrade, setSelectedGrade] = useState(gradeOptions[0]?.id)
+  const [selectedSubject, setSelectedSubject] = useState(subjectOptions[0]?.id)
+  const [selectedDateRange, setSelectedDateRange] = useState(dateRangeStudentApiValueFromLabel('Last 30 days'))
   const [progress, setProgress] = useState(null)
   const [statistics, setStatistics] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -278,14 +260,48 @@ export default function StudentInfoPage() {
         {/* Units and Topics Section */}
         <div className="p-[20px]">
           <UnitsAndTopicsComponent 
+            unitsMap={progress?.data?.units_and_topics?.units_and_topics || null}
             subtopics={(() => {
-              const u = progress?.data?.units_and_topics?.units_and_topics
-              // API shape unknown; return empty until schema is finalized
-              return Array.isArray(u?.subtopics) ? u.subtopics : []
+              const unitsObj = progress?.data?.units_and_topics?.units_and_topics || {}
+              const unitNames = Object.keys(unitsObj)
+              if (unitNames.length === 0) return []
+              const firstUnit = unitsObj[unitNames[0]]
+              const topics = Array.isArray(firstUnit?.topics) ? firstUnit.topics : []
+              const mapStatus = (s) => {
+                switch ((s || '').toLowerCase()) {
+                  case 'green': return 'completed'
+                  case 'yellow': return 'in-progress'
+                  case 'orange': return 'needs-work'
+                  case 'red': return 'not-started'
+                  default: return 'gray'
+                }
+              }
+              return topics.map((t, idx) => ({
+                id: `left-${idx}-${t.topic_name}`,
+                number: idx + 1,
+                title: t.topic_name,
+                status: mapStatus(t.status),
+                isCompleted: false,
+              }))
             })()}
             topics={(() => {
-              const u = progress?.data?.units_and_topics?.units_and_topics
-              return Array.isArray(u?.topics) ? u.topics : []
+              const unitsObj = progress?.data?.units_and_topics?.units_and_topics || {}
+              const unitNames = Object.keys(unitsObj)
+              if (unitNames.length <= 1) return []
+              const restUnits = unitNames.slice(1)
+              const flattened = []
+              for (const unitName of restUnits) {
+                const list = Array.isArray(unitsObj[unitName]?.topics) ? unitsObj[unitName].topics : []
+                for (const [idx, t] of list.entries()) {
+                  flattened.push({
+                    id: `right-${unitName}-${idx}-${t.topic_name}`,
+                    number: idx + 1,
+                    title: t.topic_name,
+                    isCompleted: false,
+                  })
+                }
+              }
+              return flattened
             })()}
           />
         </div>

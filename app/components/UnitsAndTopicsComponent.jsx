@@ -1,45 +1,28 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-// iPhone-style Toggle Switch Component
-const IPhoneToggle = ({ isCompleted, onToggle, id }) => {
-  return (
-    <button
-      onClick={() => onToggle(id)}
-      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-        isCompleted ? 'bg-[#103358]' : 'bg-gray-300'
-      }`}
-    >
-      <span
-        className={`inline-flex h-5 w-5 transform rounded-full bg-white transition-transform items-center justify-center ${
-          isCompleted ? 'translate-x-6' : 'translate-x-1'
-        }`}
-      >
-        {isCompleted ? (
-          <img src='/icons/Group.svg' className="w-3 h-3 ">
-          </img>
-        ) : (
-            <img src='/icons/Icon.svg' className="w-3 h-3 ">
-          </img>
-        )}
-      </span>
-    </button>
-  );
-};
+// Toggle removed; only color dots and clicks on unit names are used
 
 // Progress Indicator Dot Component
 const ProgressDot = ({ status }) => {
   const getColor = () => {
-    switch (status) {
+    switch ((status || '').toLowerCase()) {
+      case 'green':
       case 'completed':
         return 'bg-green-500';
+      case 'yellow':
       case 'in-progress':
         return 'bg-yellow-500';
+      case 'orange':
       case 'needs-work':
         return 'bg-orange-500';
+      case 'red':
       case 'not-started':
         return 'bg-red-500';
+      case 'white':
+      case 'gray':
+        return 'bg-gray-300';
       default:
         return 'bg-gray-300';
     }
@@ -51,7 +34,7 @@ const ProgressDot = ({ status }) => {
 };
 
 // SubTopic Item Component for Left Half
-const SubTopicItem = ({ subtopic, onToggle }) => {
+const SubTopicItem = ({ subtopic }) => {
   return (
     <div className="flex items-center justify-between py-2 px-1">
       <div className="flex items-center space-x-3 flex-1">
@@ -64,25 +47,16 @@ const SubTopicItem = ({ subtopic, onToggle }) => {
       </div>
       <div className="flex items-center space-x-3">
         <ProgressDot status={subtopic.status} />
-        <IPhoneToggle 
-          isCompleted={subtopic.isCompleted} 
-          onToggle={onToggle} 
-          id={subtopic.id}
-        />
       </div>
     </div>
   );
 };
 
 // Topic Item Component for Right Half
-const TopicItem = ({ topic, onToggle }) => {
+const TopicItem = ({ topic }) => {
   return (
     <div className="flex items-center space-x-3 py-1.5">
-      <IPhoneToggle 
-        isCompleted={topic.isCompleted} 
-        onToggle={onToggle} 
-        id={topic.id}
-      />
+      <ProgressDot status={topic.status} />
       <span className="text-sm text-gray-700 leading-relaxed">
         {topic.number}. {topic.title}
       </span>
@@ -91,9 +65,32 @@ const TopicItem = ({ topic, onToggle }) => {
 };
 
 // Main Units and Topics Component
-const UnitsAndTopicsComponent = ({ subtopics: initialSubtopics = [], topics: initialTopics = [], fullScreen = false }) => {
+const UnitsAndTopicsComponent = ({ subtopics: initialSubtopics = [], topics: initialTopics = [], unitsMap = null, fullScreen = false }) => {
   const [subtopics, setSubtopics] = useState(initialSubtopics);
   const [topics, setTopics] = useState(initialTopics);
+  const [unitNames, setUnitNames] = useState([]);
+  const [selectedUnit, setSelectedUnit] = useState(null);
+
+  // Keep internal state in sync with props from API once loaded
+  useEffect(() => {
+    setSubtopics(initialSubtopics || []);
+  }, [initialSubtopics]);
+
+  useEffect(() => {
+    setTopics(initialTopics || []);
+  }, [initialTopics]);
+
+  // When units map is provided (API path), drive UI from it
+  useEffect(() => {
+    if (unitsMap && typeof unitsMap === 'object') {
+      const names = Object.keys(unitsMap);
+      setUnitNames(names);
+      setSelectedUnit((prev) => (prev && names.includes(prev) ? prev : names[0] || null));
+    } else {
+      setUnitNames([]);
+      setSelectedUnit(null);
+    }
+  }, [unitsMap]);
 
   const handleSubTopicToggle = (subtopicId) => {
     setSubtopics(prevSubtopics => 
@@ -153,39 +150,62 @@ const UnitsAndTopicsComponent = ({ subtopics: initialSubtopics = [], topics: ini
 
       {/* Two Column Layout */}
       <div className={`flex gap-6 ${fullScreen ? 'h-full p-6' : ''}`}>
-        {/* Left Half - Main Topic with Subtopics */}
+        {/* Left Half - Units and Subtopics (or unit list) */}
         <div className="w-1/2">
           <div className={`${fullScreen ? 'h-full' : ''} rounded-lg p-4`}>
             {/* Main Topic Title */}
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Units and Subtopics</h3>
-            
-            {/* Scrollable Subtopics List */}
-            <div className={`${fullScreen ? 'h-[calc(100%-4rem)]' : 'max-h-96'} overflow-y-auto pr-2 blue-scrollbar`}>
-              <div className="space-y-0">
-                {subtopics.map((subtopic) => (
-                  <SubTopicItem 
-                    key={subtopic.id} 
-                    subtopic={subtopic} 
-                    onToggle={handleSubTopicToggle}
-                  />
-                ))}
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Units</h3>
+
+            {/* If unitsMap provided, render clickable unit names */}
+            {unitNames.length > 0 ? (
+              <div className={`${fullScreen ? 'h-[calc(100%-4rem)]' : 'max-h-96'} overflow-y-auto pr-2 blue-scrollbar`}>
+                <div className="space-y-2">
+                  {unitNames.map((name, idx) => (
+                    <div
+                      key={`unit-${idx}-${name}`}
+                      className={`flex items-center justify-between py-2 px-1 cursor-pointer ${selectedUnit === name ? 'font-semibold text-gray-900' : 'text-gray-700'}`}
+                      onClick={() => setSelectedUnit(name)}
+                    >
+                      <div className="flex items-center space-x-3 flex-1">
+                        <span className="text-sm text-gray-700 min-w-[20px]">{idx + 1}.</span>
+                        <span className="text-sm flex-1">{name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className={`${fullScreen ? 'h-[calc(100%-4rem)]' : 'max-h-96'} overflow-y-auto pr-2 blue-scrollbar`}>
+                <div className="space-y-0">
+                  {subtopics.map((subtopic) => (
+                    <SubTopicItem 
+                      key={subtopic.id} 
+                      subtopic={subtopic}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right Half - Units and Topics List */}
+        {/* Right Half - Topics List for selected unit */}
         <div className="w-1/2">
           <div className={`${fullScreen ? 'h-full' : ''} p-4`}>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Units and Topics</h3>
-            
-            {/* Topics List */}
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Topics</h3>
+
             <div className={`space-y-0.5 ${fullScreen ? 'h-[calc(100%-4rem)]' : 'max-h-96'} overflow-y-auto pr-2 blue-scrollbar`}>
-              {topics.map((topic) => (
+              {(unitNames.length > 0 && selectedUnit && unitsMap?.[selectedUnit]?.topics
+                ? unitsMap[selectedUnit].topics
+                : topics
+              ).map((topic, index) => (
                 <TopicItem 
-                  key={topic.id} 
-                  topic={topic} 
-                  onToggle={handleTopicToggle}
+                  key={`topic-${selectedUnit || 'list'}-${index}-${topic.topic_name || topic.title}`}
+                  topic={{
+                    number: (topic.number != null ? topic.number : index + 1),
+                    title: topic.title || topic.topic_name,
+                    status: topic.status,
+                  }}
                 />
               ))}
             </div>

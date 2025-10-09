@@ -10,7 +10,9 @@ import PieChart from "../components/analytics/PieChart"
 import GoalsComponent from "../components/GoalsComponent"
 import SuccessMessage from "../components/common/SuccessMessage"
 import ErrorMessage from "../components/common/ErrorMessage"
+import { toast } from 'react-toastify'
 import { api } from "../lib/api"
+import { GRADE_LABELS, SUBJECT_LABELS, DATE_RANGE_LABELS } from "../lib/enum"
 
 export default function AnalyticsPage() {
   const [pageData, setPageData] = useState(null)
@@ -72,11 +74,18 @@ export default function AnalyticsPage() {
 
     setSavingGoals(true)
     try {
-      await api.updateSubjectGoals({ grade: filters.grade, subject: filters.subject }, { practiceTime: goals.practiceTime, topicsMastered: goals.topicsMastered, examDate: goals.examDate })
+      const resp = await api.updateSubjectGoals(
+        { grade: filters.grade, subject: filters.subject },
+        { practiceTime: goals.practiceTime, topicsMastered: goals.topicsMastered, examDate: goals.examDate }
+      )
+      // API returns 204 No Content on success. Our api layer returns null for 204.
       setSaveSuccess('Goals updated successfully.')
+      toast.success('Goals updated successfully')
     } catch (err) {
       console.error(err)
-      setSaveError('Failed to update goals.')
+      const message = err?.message || 'Failed to update goals.'
+      setSaveError(message)
+      toast.error(message)
     } finally {
       setSavingGoals(false)
     }
@@ -145,9 +154,9 @@ export default function AnalyticsPage() {
             <header className="flex flex-wrap justify-between items-center gap-4">
               <h1 className="font-bold text-xl sm:text-2xl" style={{ color: '#103358' }}>Teacher Analytics</h1>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:gap-4">
-                <FilterDropdown label="Grade" value={filters.grade} onChange={(v) => handleFilterChange('grade', v)} options={['All grades', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']} />
-                <FilterDropdown label="Subject" value={filters.subject} onChange={(v) => handleFilterChange('subject', v)} options={['All subjects', 'Math', 'Science', 'English', 'Geography']} />
-                <FilterDropdown label="Date range" value={filters.dateRange} onChange={(v) => handleFilterChange('dateRange', v)} options={['Last 30 days', 'Last 7 days', 'Last 90 days', 'All time', 'Last year', 'Today', 'Yesterday']} />
+                <FilterDropdown label="Grade" value={filters.grade} onChange={(v) => handleFilterChange('grade', v)} options={GRADE_LABELS} />
+                <FilterDropdown label="Subject" value={filters.subject} onChange={(v) => handleFilterChange('subject', v)} options={SUBJECT_LABELS} />
+                <FilterDropdown label="Date range" value={filters.dateRange} onChange={(v) => handleFilterChange('dateRange', v)} options={DATE_RANGE_LABELS} />
               </div>
             </header>
 
@@ -208,8 +217,8 @@ export default function AnalyticsPage() {
                       <div key={subjectKey}>
                         <h3 className="mb-3 sm:mb-4 text-base sm:text-lg font-semibold capitalize" style={{ color: '#103358' }}>{subjectKey}</h3>
                         <div className="space-y-2 sm:space-y-3">
-                          {pageData.leaderboard[subjectKey].map(topic => (
-                            <div key={topic.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-[#F0F7FF]">
+                          {pageData.leaderboard[subjectKey].map((topic, idx) => (
+                            <div key={`${subjectKey}-${topic.id || topic.name}-${idx}`} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-[#F0F7FF]">
                               <div className="flex items-center space-x-2 min-w-0 flex-1">
                                 <span className="text-xs sm:text-sm text-gray-800 truncate">{topic.name}</span>
                                 <div className="w-[6px] h-[6px] sm:w-[7px] sm:h-[7px] bg-[#FF0000] flex-shrink-0" />
@@ -253,12 +262,12 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="space-y-1 sm:space-y-2">
                       <label className="block mb-1 text-sm sm:text-base font-semibold" style={{ color: '#103358' }}>Exam Date</label>
+                      <p className="text-xs sm:text-sm mb-2 text-gray-800">Select exam date</p>
                       <input 
                         type="date"
                         name="examDate" 
                         value={goals.examDate} 
                         onChange={handleGoalChange} 
-                        placeholder={'dd/mm/yyyy'} 
                         className="w-full p-2 sm:p-2.5 bg-[#F9FAFB] rounded-md text-gray-900 text-sm sm:text-base border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -269,8 +278,18 @@ export default function AnalyticsPage() {
                     </button>
                   </div>
                   <style jsx>{`
-                    input[type='date']::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
-                    input[type='date'] { appearance: none; -webkit-appearance: none; }
+                    input[type='date']::-webkit-calendar-picker-indicator { 
+                      color: #000000;
+                      cursor: pointer;
+                      opacity: 1;
+                    }
+                    input[type='date']::-webkit-calendar-picker-indicator:hover { 
+                      opacity: 0.8;
+                    }
+                    input[type='date'] { 
+                      appearance: none; 
+                      -webkit-appearance: none; 
+                    }
                   `}</style>
                 </div>
               </div>

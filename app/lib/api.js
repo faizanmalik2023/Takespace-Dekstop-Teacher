@@ -1,4 +1,9 @@
 // API configuration and functions for Takespace-Dekstop-Teacher
+import {
+  dateRangeApiValueFromLabel,
+  subjectIdFromLabel,
+  gradeIdFromLabel
+} from './enum';
 const API_BASE_URL = 'https://dev.takespace.com/api/v1';
 
 // Generic fetcher has been removed; no mock delays
@@ -53,6 +58,10 @@ const apiRequest = async (url, options = {}) => {
     throw error;
   }
 
+  // Handle empty responses (e.g., 204 No Content)
+  if (response.status === 204) {
+    return null;
+  }
   return response.json();
 };
 
@@ -288,36 +297,15 @@ const getTeacherAnalyticsAPI = async (filters = {}) => {
 
     const params = new URLSearchParams();
     if (filters.dateRange) {
-      // Map filter values to API expected values
-      const dateRangeMap = {
-        'Last 30 days': '30d',
-        'Last 90 days': '90d',
-        'Last 7 days': '7d',
-        'All time': 'all_time',
-        'Last year': 'last_year',
-        'Today': 'today',
-        'Yesterday': 'yesterday'
-      };
-      params.set('date_range', dateRangeMap[filters.dateRange] || '30d');
+      params.set('date_range', dateRangeApiValueFromLabel(filters.dateRange));
     }
-    if (filters.grade && filters.grade !== 'All grades') {
-      // Extract grade number from "Grade X" format
-      const gradeMatch = filters.grade.match(/Grade (\d+)/);
-      if (gradeMatch) {
-        params.set('grade', gradeMatch[1]);
-      }
+    const gradeId = gradeIdFromLabel(filters.grade);
+    if (gradeId) {
+      params.set('grade_id', gradeId);
     }
-    if (filters.subject && filters.subject !== 'All subjects') {
-      // Map subject names to IDs
-      const subjectMap = {
-        'Math': '1',
-        'Science': '2', 
-        'English': '3',
-        'Geography': '4'
-      };
-      if (subjectMap[filters.subject]) {
-        params.set('subject', subjectMap[filters.subject]);
-      }
+    const subjectId = subjectIdFromLabel(filters.subject);
+    if (subjectId) {
+      params.set('subject_id', subjectId);
     }
     
     const url = `https://dev.takespace.com/admin/v1/teacher-analytics/${teacherId}/?${params.toString()}`;
@@ -329,47 +317,30 @@ const getTeacherAnalyticsAPI = async (filters = {}) => {
   }
 };
 
-// Update Subject Goals (PATCH)
+// Update Default Goals for Grade/Subject (PATCH)
 const updateSubjectGoals = async (filters = {}, goals = {}) => {
   try {
     const params = new URLSearchParams();
 
     // Extract grade id
-    if (filters.grade && filters.grade !== 'All grades') {
-      const gradeMatch = String(filters.grade).match(/Grade (\d+)/);
-      if (gradeMatch) {
-        params.set('grade', gradeMatch[1]);
-      }
+    {
+      const gradeId = gradeIdFromLabel(filters.grade);
+      if (gradeId) params.set('grade', gradeId);
     }
 
     // Map subject to id
-    if (filters.subject && filters.subject !== 'All subjects') {
-      const subjectMap = {
-        'Math': '1',
-        'Science': '2',
-        'English': '3',
-        'Geography': '4'
-      };
-      if (subjectMap[filters.subject]) {
-        params.set('subject', subjectMap[filters.subject]);
-      }
+    {
+      const subjectId = subjectIdFromLabel(filters.subject);
+      if (subjectId) params.set('subject', subjectId);
     }
 
-    const url = `${API_BASE_URL}/admin/subject-goals/?${params.toString()}`;
+    // Use admin v1 endpoint (not API_BASE_URL which points to api/v1)
+    const url = `https://dev.takespace.com/admin/v1/subject-goals/?${params.toString()}`;
 
     // Build body. Only include provided values.
     const body = {};
-    if (goals.practiceTime !== undefined && goals.practiceTime !== null && goals.practiceTime !== '') {
-      body.time_practiced_goal_per_week = Number(goals.practiceTime);
-    }
-    if (goals.topicsMastered !== undefined && goals.topicsMastered !== null && goals.topicsMastered !== '') {
-      body.topics_mastered_goal_per_week = Number(goals.topicsMastered);
-    }
     if (goals.examDate) {
       body.exam_date = goals.examDate;
-    }
-    if (goals.lastGradeTestScore !== undefined && goals.lastGradeTestScore !== null && goals.lastGradeTestScore !== '') {
-      body.last_grade_test_score = Number(goals.lastGradeTestScore);
     }
 
     // Send PATCH

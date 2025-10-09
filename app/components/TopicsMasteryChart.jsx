@@ -92,6 +92,18 @@ function CustomPieChart({ data }) {
 
 // Progress Metric Component
 function ProgressMetric({ label, value, unit = "", isSet = false }) {
+  const formatValue = (v) => {
+    if (v === null || v === undefined) return '-'
+    if (typeof v === 'number') {
+      try {
+        return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(v)
+      } catch (_) {
+        return String(v)
+      }
+    }
+    return v
+  }
+  const display = formatValue(value)
   if (isSet) {
     return (
       <div className="flex items-center space-x-2 mb-3 last:mb-0">
@@ -99,7 +111,7 @@ function ProgressMetric({ label, value, unit = "", isSet = false }) {
         <div className="bg-blue-50 px-4 py-2 rounded-full flex-1">
           <span className="text-sm text-gray-600">{label}</span>
           <span className="text-sm font-bold text-gray-900 ml-2">
-            {value}{unit}
+            {display}{unit}
           </span>
         </div>
       </div>
@@ -110,7 +122,7 @@ function ProgressMetric({ label, value, unit = "", isSet = false }) {
     <div className="bg-blue-50 px-4 py-2 rounded-full mb-3 last:mb-0">
       <span className="text-sm text-gray-600">{label}</span>
       <span className="text-sm font-bold text-gray-900 ml-2">
-        {value}{unit}
+        {display}{unit}
       </span>
     </div>
   )
@@ -181,7 +193,6 @@ export default function TopicsMasteryChart({ topicsData = [], progressData = {} 
             <ProgressMetric label="Depth" value={(progressData.depth ?? '-')} />
             <ProgressMetric label="Streak" value={(progressData.streak ?? '-')} />
             <ProgressMetric label="Memory" value={(progressData.memory ?? '-')} />
-            <ProgressMetric label="Memory" value={(progressData.memory ?? '-')} isSet={true} />
           </div>
         </div>
       </div>

@@ -57,6 +57,17 @@ export default function PracticeChart({ data }) {
   
   // Removed horizontal scroll; chart will be responsive within its container
   
+  // Compute dynamic Y-axis upper bound based on data
+  const yMax = useMemo(() => {
+    if (!Array.isArray(chartData) || chartData.length === 0) return 10
+    const maxPoint = chartData.reduce((m, p) => {
+      const localMax = Math.max(Number(p.practiceTime || 0), Number(p.goalTime || 0))
+      return Math.max(m, localMax)
+    }, 0)
+    const padding = maxPoint > 0 ? Math.ceil(maxPoint * 0.15) : 10
+    return maxPoint + padding
+  }, [chartData])
+
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -118,7 +129,7 @@ export default function PracticeChart({ data }) {
                 tick={{ fontSize: 12, fill: '#6B7280' }}
                 tickMargin={10}
                 tickFormatter={(value) => value.toLocaleString()}
-                domain={[0, 'dataMax + 1000']}
+                domain={[0, yMax]}
                 allowDecimals={false}
               />
               <Tooltip content={<CustomTooltip />} />
