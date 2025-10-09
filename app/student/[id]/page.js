@@ -89,6 +89,7 @@ export default function StudentInfoPage() {
     <div className="min-h-screen bg-gray-50">
       
       <div className="flex-1 p-4 md:p-6">
+        <div className="max-w-[1297px] mx-auto space-y-6">
         {/* Student Header */}
        <div className="p-[20px]">
        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-[2%] gap-4">
@@ -306,7 +307,8 @@ export default function StudentInfoPage() {
           />
         </div>
        
+        </div>
+        </div>
       </div>
-    </div>
   )
 } 

@@ -4,69 +4,47 @@ import '../../lib/i18n';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 
-// Mock Input component based on the design
-const Input = ({ placeholder, className, icon, iconPosition }) => {
+// Responsive search input (visible on md+)
+const Input = ({ placeholder, className, icon, iconPosition, onChange, value }) => {
   return (
     <div
       className="relative hidden md:block"
       style={{
-        position: 'absolute',
-        left: '19.44%',
-        right: '62.85%',
-        top: '25.74%',
-        bottom: '24.75%',
         background: 'rgba(57, 138, 200, 0.1)',
-        borderRadius: '40px'
+        borderRadius: '40px',
+        height: '40px',
+        width: '100%',
+        maxWidth: '420px'
       }}
     >
       <input
         type="text"
         placeholder={placeholder}
-        className="w-full h-full px-12 border-0 outline-none bg-transparent"
+        className="w-full h-full pl-10 pr-3 border-0 outline-none bg-transparent"
         style={{
           fontFamily: 'Inter, sans-serif',
           fontStyle: 'normal',
           fontWeight: 400,
           fontSize: '15px',
           lineHeight: '18px',
-          color: '#BDBDBD'
+          color: '#111111'
         }}
+        onChange={onChange}
+        value={value}
       />
       {icon === 'search' && iconPosition === 'left' && (
         <svg
-          className="absolute w-[20px] h-[20px]"
-          style={{
-            position: 'absolute',
-            left: '7.18%',
-            right: '59.43%',
-            top: '33.59%',
-            bottom: '39.6%',
-            color: '#BDBDBD'
-          }}
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <g style={{
-            position: 'absolute',
-            left: '2.15%',
-            right: '2.15%',
-            top: '2.15%',
-            bottom: '2.15%'
-          }}>
+          <g>
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              style={{
-                position: 'absolute',
-                left: '2.15%',
-                right: '2.15%',
-                top: '2.15%',
-                bottom: '2.15%',
-                background: '#BDBDBD'
-              }}
             />
           </g>
         </svg>
@@ -78,6 +56,7 @@ const Input = ({ placeholder, className, icon, iconPosition }) => {
 const Navbar = () => {
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const [userDisplay, setUserDisplay] = useState('');
   const { isAuthenticated, logout } = useAuth();
 
@@ -106,9 +85,9 @@ const Navbar = () => {
         height: '100px'
       }}
     >
-      <div className="w-full h-full relative px-4 sm:px-6 lg:px-8">
+      <div className="w-full h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
         {/* Left Section - Logo and Brand */}
-        <a href="/dashboard" className="absolute left-4 sm:left-6 lg:left-8 top-0 flex items-center space-x-2 sm:space-x-3 h-full cursor-pointer select-none" style={{ textDecoration: 'none' }}>
+        <a href="/dashboard" className="flex items-center space-x-2 sm:space-x-3 h-full cursor-pointer select-none" style={{ textDecoration: 'none' }}>
           <img 
             src="/logo.svg" 
             alt="TakeSpace Logo" 
@@ -132,14 +111,18 @@ const Navbar = () => {
         </a>
 
         {/* Center Section - Search Bar (Hidden on mobile) */}
-        <Input
-          placeholder={t('searchPlaceholder')}
-          icon="search"
-          iconPosition="left"
-        />
+        <div className="flex-1 hidden md:flex justify-center">
+          <Input
+            placeholder={t('searchPlaceholder')}
+            icon="search"
+            iconPosition="left"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
 
         {/* Right Section - Navigation Links (Desktop) */}
-        <div className="absolute right-4 sm:right-6 lg:right-8 top-0 h-full hidden lg:flex items-center space-x-4 xl:space-x-8">
+        <div className="hidden lg:flex items-center space-x-4 xl:space-x-8">
           {navLinks.map((link) => (
             <a
               key={link.key}
@@ -172,36 +155,8 @@ const Navbar = () => {
             <a href="/login" className="px-3 py-2 text-sm rounded-md border border-[#103358] text-[#103358] hover:bg-[#E3F3FF]">Login</a>
           )}
         </div>
-
-        {/* Tablet Navigation (md screens) */}
-        <div className="absolute right-4 sm:right-6 top-0 h-full hidden md:flex lg:hidden items-center space-x-4">
-          {navLinks.map((link) => (
-            <a
-              key={link.key}
-              href={`/${link.key}`}
-              className="transition-colors hover:text-[#398AC8] text-sm whitespace-nowrap"
-              style={{
-                fontFamily: 'Poppins, sans-serif',
-                fontWeight: 400,
-                color: '#333333',
-                textDecoration: 'none'
-              }}
-            >
-              {link.label}
-            </a>
-          ))}
-          <button
-            className="text-[#103358] hover:text-[#398AC8] p-2"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-            </svg>
-          </button>
-        </div>
-
         {/* Mobile Menu Button */}
-        <div className="md:hidden absolute right-4 top-1/2 transform -translate-y-1/2">
+        <div className="lg:hidden flex items-center">
           <button
             className="text-[#103358] hover:text-[#398AC8] p-2"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -233,8 +188,10 @@ const Navbar = () => {
                     background: 'rgba(57, 138, 200, 0.1)',
                     fontFamily: 'Inter, sans-serif',
                     fontSize: '15px',
-                    color: '#BDBDBD'
+                    color: '#111111'
                   }}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                 />
                 <svg 
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"

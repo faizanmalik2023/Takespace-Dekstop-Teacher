@@ -20,65 +20,37 @@ const CustomTooltip = ({ active, payload }) => {
 // Custom Pie Chart with Labels
 function CustomPieChart({ data }) {
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
+    <ResponsiveContainer width="100%" height="100%" style={{ overflow: 'visible' }}>
+      <PieChart margin={{ top: 8, right: 24, bottom: 8, left: 24 }}>
+          <Pie
           data={data}
           cx="50%"
           cy="50%"
-          outerRadius={120}
+          outerRadius={110}
           paddingAngle={0}
           dataKey="value"
           labelLine={false}
-          label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
-            const RADIAN = Math.PI / 180
-            const radius = innerRadius + (outerRadius - innerRadius) * 0.6
-            const x = cx + radius * Math.cos(-midAngle * RADIAN)
-            const y = cy + radius * Math.sin(-midAngle * RADIAN)
-            
-            // For very small slices, position label outside
-            if (percent < 0.05) {
-              const outerX = cx + (outerRadius + 20) * Math.cos(-midAngle * RADIAN)
-              const outerY = cy + (outerRadius + 20) * Math.sin(-midAngle * RADIAN)
+            label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+              // Avoid rendering tiny outside labels that can overflow
+              if (percent < 0.1) return null
+              const RADIAN = Math.PI / 180
+              const radius = innerRadius + (outerRadius - innerRadius) * 0.6
+              const x = cx + radius * Math.cos(-midAngle * RADIAN)
+              const y = cy + radius * Math.sin(-midAngle * RADIAN)
               return (
-                <g key={`label-${index}`}>
-                  <line
-                    x1={cx + outerRadius * Math.cos(-midAngle * RADIAN)}
-                    y1={cy + outerRadius * Math.sin(-midAngle * RADIAN)}
-                    x2={outerX}
-                    y2={outerY}
-                    stroke="#9CA3AF"
-                    strokeWidth={1}
-                  />
-                  <text
-                    x={outerX}
-                    y={outerY}
-                    fill="black"
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize={12}
-                    fontWeight="medium"
-                  >
-                    {data[index].count}({data[index].percentage}%)
-                  </text>
-                </g>
+                <text
+                  x={x}
+                  y={y}
+                  fill="white"
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize={13}
+                  fontWeight="bold"
+                >
+                  {data[index].percentage}%
+                </text>
               )
-            }
-            
-            return (
-              <text
-                x={x}
-                y={y}
-                fill="white"
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize={14}
-                fontWeight="bold"
-              >
-                {data[index].percentage}%
-              </text>
-            )
-          }}
+            }}
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} />
@@ -154,7 +126,7 @@ export default function TopicsMasteryChart({ topicsData = [], progressData = {} 
           <div className="flex items-start space-x-12">
             {/* Pie Chart */}
             <div className="flex-shrink-0">
-              <div className="w-64 h-64">
+            <div className="w-64 h-64 overflow-visible">
                 <CustomPieChart data={Array.isArray(topicsData) && topicsData.length > 0 ? topicsData : [
                   { name: 'mastered', value: 0, count: 0, percentage: 0, color: '#22C55E' },
                   { name: 'red', value: 0, count: 0, percentage: 0, color: '#EF4444' }

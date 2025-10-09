@@ -127,16 +127,16 @@ function PieChartItem({ data }) {
 export default function PieChartSection({ questionsData = [], timeData = [], rightTopTexts = [], rightBottomTexts = [] }) {
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 h-full flex flex-col">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 h-full flex flex-col overflow-hidden">
       {/* Header */}
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-gray-900">For the chosen period</h3>
       </div>
       
       {/* Pie Charts */}
-      <div className="flex-1 flex flex-row items-stretch">
+      <div className="flex-1 flex flex-col lg:flex-row items-stretch overflow-hidden">
         {/* Left content: two stacked pies */}
-        <div className="flex-[1.2] flex flex-col justify-center space-y-12 pr-8">
+        <div className="flex-[1.2] flex flex-col justify-center space-y-12 lg:pr-8">
           {/* Questions Pie Chart */}
           <PieChartItem
             data={Array.isArray(questionsData) && questionsData.length ? questionsData : [
@@ -146,7 +146,7 @@ export default function PieChartSection({ questionsData = [], timeData = [], rig
           />
 
           {/* Divider for desktop */}
-          <div className="h-px w-full border-t border-[#E5E5EF] my-8" />
+          <div className="h-px w-full border-t border-[#E5E5EF] my-8 lg:my-12" />
 
           {/* Time Pie Chart */}
           <PieChartItem
@@ -157,14 +157,14 @@ export default function PieChartSection({ questionsData = [], timeData = [], rig
           />
         </div>
         {/* Right-side vertical pills - centered column of up to three */}
-        <div className="hidden lg:flex flex-col items-center h-full py-2" style={{ width: 'clamp(60px, 7vw, 84px)' }}>
+        <div className="hidden lg:flex flex-col items-center h-full py-2 shrink-0" style={{ width: 'clamp(40px, 4.5vw, 60px)' }}>
           {(() => {
             const merged = [
               ...((rightTopTexts || [])),
               ...((rightBottomTexts || []))
             ].slice(0, 3)
             return (
-              <div className="flex flex-col items-center justify-center h-full w-full" style={{ rowGap: '100px' }}>
+              <div className="flex flex-col items-center justify-center h-full w-full gap-8 xl:gap-24">
                 {merged.map((t, i) => (
                   <VerticalPill key={`rp-${i}`} text={t} />
                 ))}
