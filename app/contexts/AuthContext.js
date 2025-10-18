@@ -48,13 +48,17 @@ export const AuthProvider = ({ children }) => {
       
       // Import api dynamically to avoid circular dependency
       const { api } = await import('../lib/api');
-      const response = await api.login(username, password);
-      
+      const response = await api.login(username, password);      
       const data = response?.data || response;
       const access = data?.tokens?.access || data?.access;
       const refresh = data?.tokens?.refresh || data?.refresh;
       const userData = data?.user || data?.data?.user;
       
+      if(userData?.role !== 'teacher') {
+        toast.error('You are not authorized to access this application');
+        return { success: false, error: 'You are not authorized to access this application' };
+      }
+
       if (access && userData) {
         const storage = keepSignedIn ? localStorage : sessionStorage;
         storage.setItem('access_token', access);
